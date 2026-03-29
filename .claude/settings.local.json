@@ -1,0 +1,17 @@
+{
+  "permissions": {
+    "allow": [
+      "Skill(autoplan)",
+      "Skill(autoplan:*)",
+      "Bash(mv \"d:/project/2026/smart-ledger/\"*.xls \"d:/project/2026/smart-ledger/data/\")",
+      "Bash(mv \"d:/project/2026/smart-ledger/\"*.pdf \"d:/project/2026/smart-ledger/data/\")",
+      "Bash(mkdir -p /tmp/smart-ledger-backup)",
+      "Bash(cp -r \"d:/project/2026/smart-ledger/data\" /tmp/smart-ledger-backup/)",
+      "Bash(cp \"d:/project/2026/smart-ledger/plan.md\" /tmp/smart-ledger-backup/)",
+      "Bash(cp -r \"d:/project/2026/smart-ledger/.claude\" /tmp/smart-ledger-backup/)",
+      "Bash(rm -rf \"d:/project/2026/smart-ledger/data\" \"d:/project/2026/smart-ledger/plan.md\" \"d:/project/2026/smart-ledger/.claude\")",
+      "Bash(npm install:*)",
+      "Bash(npx tsc:*)"
+    ]
+  }
+}
