@@ -23,18 +23,18 @@ Row 4+: 데이터 행
 ---
 
 ## Task 1: 프로젝트 셋업 + Git 초기화
-- [ ] `npx create-next-app@latest . --typescript --tailwind --app --src-dir --eslint`
-- [ ] Git 초기화: `git init && git add . && git commit -m "init: Next.js 15 project"`
-- [ ] supanova-design-skill 설치: `.claude/skills/` 에 클론
-- [ ] 기존 엑셀/PDF 파일을 `data/` 폴더로 이동 (.gitignore에 추가)
-- [ ] CLAUDE.md 작성 (프로젝트 컨벤션)
-- [ ] 패키지 설치: `npm install xlsx recharts drizzle-orm @libsql/client bcryptjs jsonwebtoken`
-- [ ] 개발 패키지: `npm install -D drizzle-kit @types/bcryptjs @types/jsonwebtoken`
+- [x] `npx create-next-app@latest . --typescript --tailwind --app --src-dir --eslint`
+- [x] Git 초기화: `git init && git add . && git commit -m "init: Next.js 15 project"`
+- [x] supanova-design-skill 설치: `.claude/skills/` 에 클론
+- [x] 기존 엑셀/PDF 파일을 `data/` 폴더로 이동 (.gitignore에 추가)
+- [x] CLAUDE.md 작성 (프로젝트 컨벤션)
+- [x] 패키지 설치: `npm install xlsx recharts drizzle-orm @libsql/client bcryptjs jsonwebtoken`
+- [x] 개발 패키지: `npm install -D drizzle-kit @types/bcryptjs @types/jsonwebtoken`
 
 ## Task 2: DB 스키마 + Turso 셋업
-- [ ] Turso 계정 생성 + DB 생성: `turso db create smart-ledger`
-- [ ] 환경변수 설정: `.env.local`에 `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `LEDGER_PASSWORD_HASH`
-- [ ] Drizzle 스키마 작성: `src/db/schema.ts`
+- [x] Turso 계정 생성 + DB 생성: `turso db create smart-ledger`
+- [x] 환경변수 설정: `.env.local`에 `TURSO_DATABASE_URL`, `TURSO_AUTH_TOKEN`, `LEDGER_PASSWORD_HASH`
+- [x] Drizzle 스키마 작성: `src/db/schema.ts`
   ```
   transactions: id, date, description, amount(Int), category, cardCompany,
                 cardName, memberType(본인/가족), originalCategory, customCategory,
@@ -43,19 +43,19 @@ Row 4+: 데이터 행
   savings: id, name, monthlyAmount, startDate, endDate
   categoryRules: id, pattern, category, priority
   ```
-- [ ] DB 클라이언트: `src/db/index.ts` (Drizzle + libSQL 연결)
-- [ ] `drizzle.config.ts` 작성
-- [ ] 마이그레이션 실행: `npx drizzle-kit push`
-- [ ] 기본 카테고리 규칙 시드 데이터 삽입
+- [x] DB 클라이언트: `src/db/index.ts` (Drizzle + libSQL 연결)
+- [x] `drizzle.config.ts` 작성
+- [x] 마이그레이션 실행: `npx drizzle-kit push`
+- [x] 기본 카테고리 규칙 시드 데이터 삽입
 
 ## Task 3: 공유 비밀번호 인증
-- [ ] `src/middleware.ts`: 쿠키 확인 → 없으면 `/login`으로 리다이렉트
-- [ ] `src/app/login/page.tsx`: 비밀번호 입력 폼
-- [ ] `src/app/api/auth/route.ts`: bcrypt 비교 → HMAC 서명 토큰 → 쿠키 설정 (7일)
-- [ ] `.env.local`에 `LEDGER_PASSWORD_HASH` (bcrypt 해시), `AUTH_SECRET` (HMAC 키)
+- [x] `src/middleware.ts`: 쿠키 확인 → 없으면 `/login`으로 리다이렉트
+- [x] `src/app/login/page.tsx`: 비밀번호 입력 폼
+- [x] `src/app/api/auth/route.ts`: bcrypt 비교 → HMAC 서명 토큰 → 쿠키 설정 (7일)
+- [x] `.env.local`에 `LEDGER_PASSWORD_HASH` (bcrypt 해시), `AUTH_SECRET` (HMAC 키)
 
 ## Task 4: 현대카드 엑셀 파서
-- [ ] `src/lib/parsers/hyundai.ts`: 핵심 파서
+- [x] `src/lib/parsers/hyundai.ts`: 핵심 파서
   - SheetJS로 .xls 읽기 (`codepage: 949` 옵션)
   - Row 1-2 스킵 (헤더)
   - Row 3 = 컬럼명 확인 (형식 변경 감지)
@@ -68,30 +68,30 @@ Row 4+: 데이터 행
     - `이용가맹점`에서 가맹점명 추출 (숫자+쉼표 패턴 제거)
   - 해외 결제 처리: `JPY:2800.00` 패턴 감지, 가맹점명에서 분리
   - 환불 처리: 음수 금액 유지
-- [ ] `src/lib/parsers/categorizer.ts`: 카테고리 자동 분류
+- [x] `src/lib/parsers/categorizer.ts`: 카테고리 자동 분류
   - DB에서 CategoryRule 조회 (priority 내림차순)
   - 가맹점명에 pattern 포함 여부 확인 (대소문자 무시)
   - 매칭 안 되면 `기타`
-- [ ] `src/lib/parsers/duplicate-detector.ts`: 중복 감지
+- [x] `src/lib/parsers/duplicate-detector.ts`: 중복 감지
   - 같은 날짜+금액+가맹점명 → 후보 목록 반환 (자동 삭제 아님)
 - [ ] 파서 단위 테스트 (실제 엑셀 데이터 기반)
 
 ## Task 5: 업로드 API + 페이지
-- [ ] `src/app/api/upload/route.ts`: 파일 업로드 API
+- [x] `src/app/api/upload/route.ts`: 파일 업로드 API
   - multipart/form-data로 .xls 파일 수신
   - 파서 호출 → 파싱 결과 + 중복 후보 반환 (아직 DB 저장 안 함)
-- [ ] `src/app/api/transactions/route.ts`: 거래 CRUD API
+- [x] `src/app/api/transactions/route.ts`: 거래 CRUD API
   - POST: 파싱 결과 확인 후 DB 저장 (중복 제외 선택 포함)
   - GET: 월/년/카테고리/카드사 필터링
   - DELETE: 특정 거래 삭제
-- [ ] `src/app/upload/page.tsx`: 업로드 UI
+- [x] `src/app/upload/page.tsx`: 업로드 UI
   - 드래그앤드롭 영역 (supanova 스타일)
   - 파싱 결과 미리보기 테이블
   - 중복 후보 경고 + 체크박스로 제외 선택
   - "저장" 버튼으로 확정
 
 ## Task 6: 대시보드
-- [ ] `src/app/page.tsx`: 메인 대시보드
+- [x] `src/app/page.tsx`: 메인 대시보드
   - 이번 달 총 지출 카드 (supanova 더블 베젤)
   - 카테고리별 파이차트 (Recharts PieChart)
   - 카테고리별 바차트 (Recharts BarChart)
@@ -99,13 +99,13 @@ Row 4+: 데이터 행
   - 수입 대비 지출 비율 게이지
   - 저축률 표시
   - 본인/가족 지출 비교
-- [ ] `src/app/api/dashboard/route.ts`: 대시보드 데이터 API
+- [x] `src/app/api/dashboard/route.ts`: 대시보드 데이터 API
   - 월별 카테고리 합산
   - 전월 대비 증감 계산
   - 수입/저축 데이터 조회
 
 ## Task 7: 지출 상세 페이지
-- [ ] `src/app/expenses/page.tsx`:
+- [x] `src/app/expenses/page.tsx`:
   - 전체 거래 목록 테이블 (날짜, 가맹점, 금액, 카테고리, 본인/가족)
   - 필터: 기간 선택, 카테고리, 카드사, 본인/가족
   - 검색: 가맹점명 텍스트 검색
@@ -113,16 +113,16 @@ Row 4+: 데이터 행
   - 페이지네이션 또는 무한 스크롤
 
 ## Task 8: 수입/저축 관리
-- [ ] `src/app/income/page.tsx`:
+- [x] `src/app/income/page.tsx`:
   - 월급/보너스 입력 폼 (금액, 날짜, 유형)
   - 수입 목록 (월별)
   - 적금 목록 + 추가/편집
   - 저축률 추이 차트 (Recharts LineChart)
-- [ ] `src/app/api/income/route.ts`: 수입 CRUD
-- [ ] `src/app/api/savings/route.ts`: 적금 CRUD
+- [x] `src/app/api/income/route.ts`: 수입 CRUD
+- [x] `src/app/api/savings/route.ts`: 적금 CRUD
 
 ## Task 9: 분석 페이지
-- [ ] `src/app/analytics/page.tsx`:
+- [x] `src/app/analytics/page.tsx`:
   - 월별 지출 비교 차트 (1월 vs 2월 vs 3월)
   - 카테고리별 트렌드 (월별 변화)
   - TOP 5 지출처 랭킹
@@ -130,18 +130,18 @@ Row 4+: 데이터 행
     - "이번 달 식비가 지난달 대비 X% 증가"
     - "외식비를 10% 줄이면 월 X원 절약"
   - 본인 vs 가족 지출 비교
-- [ ] `src/lib/analytics/insights.ts`: 인사이트 생성 로직
+- [x] `src/lib/analytics/insights.ts`: 인사이트 생성 로직
   - 전월 대비 카테고리별 증감 계산
   - TOP N 지출처 추출
   - 절약 시뮬레이션
 
 ## Task 10: 레이아웃 + 네비게이션 + supanova 디자인
-- [ ] `src/app/layout.tsx`: 글로벌 레이아웃
+- [x] `src/app/layout.tsx`: 글로벌 레이아웃
   - supanova 글래스 네비게이션 바
   - 사이드바 또는 탑 네비게이션 (대시보드/지출/분석/수입/업로드)
   - 한국어 타이포그래피 (Pretendard 또는 Noto Sans KR)
   - 다크모드 지원
-- [ ] 공통 컴포넌트:
+- [x] 공통 컴포넌트:
   - `src/components/ui/Card.tsx` (더블 베젤 카드)
   - `src/components/ui/Button.tsx`
   - `src/components/ui/Input.tsx`
