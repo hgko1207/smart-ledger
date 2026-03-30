@@ -11,7 +11,22 @@
       "Bash(cp -r \"d:/project/2026/smart-ledger/.claude\" /tmp/smart-ledger-backup/)",
       "Bash(rm -rf \"d:/project/2026/smart-ledger/data\" \"d:/project/2026/smart-ledger/plan.md\" \"d:/project/2026/smart-ledger/.claude\")",
       "Bash(npm install:*)",
-      "Bash(npx tsc:*)"
+      "Bash(npx tsc:*)",
+      "Bash(node -e \"const bcrypt = require\\(''bcryptjs''\\); bcrypt.hash\\(''1234'', 10\\).then\\(h => console.log\\(h\\)\\)\")",
+      "Bash(node -e \"console.log\\(require\\(''crypto''\\).randomBytes\\(32\\).toString\\(''hex''\\)\\)\")",
+      "Bash(npx drizzle-kit:*)",
+      "Bash(npx tsx:*)",
+      "Bash(npx next:*)",
+      "Bash(node -e \"const bcrypt = require\\(''bcryptjs''\\); bcrypt.compare\\(''1234'', ''$2b$10$4/hkiGtFbwtmP8VmTcCRZu.rZyK0n5hf3K1ivRrqX5nPAmRzCCv5m''\\).then\\(r => console.log\\(''match:'', r\\)\\)\")",
+      "Bash(node -e \":*)",
+      "Bash(ls d:/project/2026/smart-ledger/data/*.xls)",
+      "Bash(TOKEN=\"eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJhdXRoZW50aWNhdGVkIjp0cnVlLCJpYXQiOjE3NzQ3OTcxMTYsImV4cCI6MTc3NDgwMDcxNn0.ZOUb5Q68hlD2tlGlTR5CXfnrYD-IaJxwC_e0HhdCKuE\")",
+      "Bash(curl -s -b \"ledger-auth=$TOKEN\" -F \"file=@data/hyundaicard_20260325\\(1월\\).xls\" http://localhost:3000/api/upload -o /tmp/upload1.json)",
+      "Bash(node -e \"const j=JSON.parse\\(require\\(''fs''\\).readFileSync\\(''/tmp/upload1.json'',''utf8''\\)\\);console.log\\(''1월 파싱:'', j.transactions?.length, ''transactions,'', j.duplicates?.length, ''duplicates''\\)\")",
+      "Bash(mkdir -p /tmp)",
+      "Bash(curl -s -b \"ledger-auth=$TOKEN\" -F \"file=@data/hyundaicard_20260325\\(1월\\).xls\" http://localhost:3000/api/upload -o \"$TEMP/upload1.json\")",
+      "Bash(node -e \"const j=JSON.parse\\(require\\(''fs''\\).readFileSync\\(process.env.TEMP+''/upload1.json'',''utf8''\\)\\);console.log\\(''1월:'', j.transactions?.length, ''transactions,'', j.duplicates?.length, ''duplicates''\\)\")",
+      "Bash(gh repo:*)"
     ]
   }
 }

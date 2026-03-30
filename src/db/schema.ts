@@ -15,6 +15,9 @@ export const transactions = sqliteTable("transactions", {
   month: integer("month").notNull(), // 1-12
   year: integer("year").notNull(),
   statementFile: text("statement_file"), // 원본 명세서 파일명
+  installmentTotal: integer("installment_total"), // 총 할부 개월수 (예: 3, 10). null이면 일시불
+  installmentCurrent: integer("installment_current"), // 현재 회차 (예: 3, 2)
+  installmentRemaining: integer("installment_remaining"), // 결제후 남은 잔액 (원)
   createdAt: text("created_at").notNull(), // ISO8601
 });
 

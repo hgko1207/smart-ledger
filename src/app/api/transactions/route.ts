@@ -16,6 +16,9 @@ interface SaveTransactionInput {
   year: number;
   foreignCurrency: string | null;
   statementFile: string;
+  installmentTotal: number | null;
+  installmentCurrent: number | null;
+  installmentRemaining: number | null;
 }
 
 interface SaveTransactionsBody {
@@ -71,6 +74,9 @@ export async function POST(request: Request) {
       month: tx.month,
       year: tx.year,
       statementFile: tx.statementFile,
+      installmentTotal: tx.installmentTotal ?? null,
+      installmentCurrent: tx.installmentCurrent ?? null,
+      installmentRemaining: tx.installmentRemaining ?? null,
       createdAt: now,
     }));
 

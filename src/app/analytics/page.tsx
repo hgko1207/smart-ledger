@@ -14,6 +14,7 @@ import {
   Line,
 } from "recharts";
 import type { AnalyticsResponse, Insight } from "@/lib/analytics/insights";
+import type { InstallmentsResponse, InstallmentItem } from "@/app/api/installments/route";
 
 const COLORS = [
   "#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6",
@@ -83,8 +84,10 @@ export default function AnalyticsPage() {
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [data, setData] = useState<AnalyticsResponse | null>(null);
+  const [installData, setInstallData] = useState<InstallmentsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showAllInsights, setShowAllInsights] = useState(false);
 
   const monthOptions = getMonthOptions();
 
@@ -92,15 +95,21 @@ export default function AnalyticsPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(
-        `/api/analytics?year=${selectedYear}&month=${selectedMonth}`
-      );
-      if (!res.ok) {
-        const errData = (await res.json()) as { error: string };
+      const [analyticsRes, installRes] = await Promise.all([
+        fetch(`/api/analytics?year=${selectedYear}&month=${selectedMonth}`),
+        fetch("/api/installments"),
+      ]);
+      if (!analyticsRes.ok) {
+        const errData = (await analyticsRes.json()) as { error: string };
         throw new Error(errData.error);
       }
-      const result = (await res.json()) as AnalyticsResponse;
+      const result = (await analyticsRes.json()) as AnalyticsResponse;
       setData(result);
+
+      if (installRes.ok) {
+        const instResult = (await installRes.json()) as InstallmentsResponse;
+        setInstallData(instResult);
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "데이터 로딩에 실패했습니다.";
@@ -204,19 +213,27 @@ export default function AnalyticsPage() {
           </div>
         </div>
 
-        {/* 인사이트 카드 */}
+        {/* 인사이트 카드 — 최대 3개, 더보기 토글 */}
         {data.insights.length > 0 && (
-          <div className="space-y-3 mb-8">
+          <div className="space-y-2 mb-8">
             <h2 className="text-lg font-semibold">인사이트</h2>
-            {data.insights.map((insight, idx) => (
+            {(showAllInsights ? data.insights : data.insights.slice(0, 3)).map((insight, idx) => (
               <div
                 key={idx}
-                className={`flex items-start gap-3 p-4 rounded-xl border ${insightColor(insight.type)}`}
+                className={`flex items-start gap-3 px-4 py-3 rounded-xl border ${insightColor(insight.type)}`}
               >
-                <span className="text-lg shrink-0 mt-0.5">{insightIcon(insight.type)}</span>
+                <span className="text-base shrink-0 mt-0.5">{insightIcon(insight.type)}</span>
                 <span className="text-sm">{insight.message}</span>
               </div>
             ))}
+            {data.insights.length > 3 && (
+              <button
+                onClick={() => setShowAllInsights(!showAllInsights)}
+                className="text-sm text-gray-400 hover:text-white transition-colors px-2 py-1"
+              >
+                {showAllInsights ? "접기 ▲" : `+${data.insights.length - 3}개 더보기 ▼`}
+              </button>
+            )}
           </div>
         )}
 
@@ -255,7 +272,7 @@ export default function AnalyticsPage() {
           </div>
 
           {/* TOP 5 지출처 */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 overflow-hidden">
             <h2 className="text-lg font-semibold mb-4">TOP 5 지출처</h2>
             {data.topMerchants.length > 0 ? (
               <div className="space-y-4">
@@ -263,20 +280,20 @@ export default function AnalyticsPage() {
                   const maxTotal = data.topMerchants[0]?.total ?? 1;
                   const widthPct = (merchant.total / maxTotal) * 100;
                   return (
-                    <div key={merchant.description}>
-                      <div className="flex items-center justify-between mb-1">
-                        <div className="flex items-center gap-2">
-                          <span className="text-sm font-bold text-gray-500 w-6">
+                    <div key={merchant.description} className="min-w-0">
+                      <div className="flex items-center justify-between mb-1 gap-2">
+                        <div className="flex items-center gap-2 min-w-0 flex-1">
+                          <span className="text-sm font-bold text-gray-500 shrink-0 w-6">
                             {idx + 1}
                           </span>
-                          <span className="text-sm">{merchant.description}</span>
+                          <span className="text-sm truncate">{merchant.description}</span>
                         </div>
-                        <div className="flex items-center gap-3">
+                        <div className="flex items-center gap-2 shrink-0">
                           <span className="text-xs text-gray-500">{merchant.count}건</span>
                           <span className="text-sm font-mono">{formatKRW(merchant.total)}</span>
                         </div>
                       </div>
-                      <div className="ml-8 w-full bg-gray-800 rounded-full h-2">
+                      <div className="ml-8 bg-gray-800 rounded-full h-2 overflow-hidden">
                         <div
                           className="h-2 rounded-full transition-all"
                           style={{
@@ -367,6 +384,90 @@ export default function AnalyticsPage() {
                       />
                     </div>
                     <p className="text-sm text-gray-400 text-right">{pct.toFixed(1)}%</p>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* 할부 상세 */}
+        {installData && installData.activeInstallments.length > 0 && (
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8">
+            <div className="flex items-center justify-between mb-4">
+              <h2 className="text-lg font-semibold">진행 중 할부</h2>
+              <div className="flex gap-4 text-sm text-gray-400">
+                <span>총 잔액: <span className="text-orange-400 font-medium">{formatKRW(installData.totalRemaining)}</span></span>
+                <span>월 납부: <span className="text-orange-400 font-medium">{formatKRW(installData.monthlyPaymentTotal)}</span></span>
+              </div>
+            </div>
+            <div className="overflow-x-auto">
+              <table className="w-full text-sm">
+                <thead>
+                  <tr className="border-b border-gray-800 text-gray-400">
+                    <th className="text-left py-3 px-2">가맹점</th>
+                    <th className="text-center py-3 px-2">할부기간</th>
+                    <th className="text-center py-3 px-2">현재회차</th>
+                    <th className="text-center py-3 px-2">남은개월</th>
+                    <th className="text-right py-3 px-2">월 납부액</th>
+                    <th className="text-right py-3 px-2">남은 잔액</th>
+                    <th className="text-center py-3 px-2">완료 예정</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {installData.activeInstallments.map((item: InstallmentItem) => {
+                    // 완료 예정월 계산 (현재 날짜 기준 + 남은 개월수)
+                    const completionDate = new Date();
+                    completionDate.setMonth(completionDate.getMonth() + item.remainingMonths);
+                    const completionLabel = `${completionDate.getFullYear()}년 ${completionDate.getMonth() + 1}월`;
+
+                    return (
+                      <tr key={item.id} className="border-b border-gray-800/50 hover:bg-gray-800/30">
+                        <td className="py-3 px-2 max-w-48 truncate">{item.description}</td>
+                        <td className="py-3 px-2 text-center">{item.installmentTotal}개월</td>
+                        <td className="py-3 px-2 text-center">
+                          <span className="inline-flex items-center gap-1">
+                            {item.installmentCurrent}/{item.installmentTotal}
+                          </span>
+                        </td>
+                        <td className="py-3 px-2 text-center text-orange-400 font-medium">
+                          {item.remainingMonths}개월
+                        </td>
+                        <td className="py-3 px-2 text-right font-mono">
+                          {formatKRW(item.estimatedMonthlyPayment)}
+                        </td>
+                        <td className="py-3 px-2 text-right font-mono text-orange-400">
+                          {formatKRW(item.installmentRemaining)}
+                        </td>
+                        <td className="py-3 px-2 text-center text-gray-400 text-xs">
+                          {completionLabel}
+                        </td>
+                      </tr>
+                    );
+                  })}
+                </tbody>
+              </table>
+            </div>
+
+            {/* 할부 진행률 시각화 */}
+            <div className="mt-6 space-y-3">
+              <h3 className="text-sm font-medium text-gray-400 mb-2">할부 진행률</h3>
+              {installData.activeInstallments.map((item: InstallmentItem) => {
+                const progress = (item.installmentCurrent / item.installmentTotal) * 100;
+                return (
+                  <div key={`progress-${item.id}`} className="flex items-center gap-3">
+                    <span className="text-xs text-gray-300 w-32 truncate shrink-0">
+                      {item.description}
+                    </span>
+                    <div className="flex-1 bg-gray-800 rounded-full h-3">
+                      <div
+                        className="h-3 rounded-full bg-orange-500 transition-all"
+                        style={{ width: `${progress}%` }}
+                      />
+                    </div>
+                    <span className="text-xs text-gray-400 w-16 text-right shrink-0">
+                      {progress.toFixed(0)}%
+                    </span>
                   </div>
                 );
               })}

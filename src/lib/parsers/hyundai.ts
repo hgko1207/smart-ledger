@@ -10,6 +10,9 @@ export interface ParsedTransaction {
   month: number; // 1-12
   year: number;
   foreignCurrency: string | null; // 해외결제 시 통화:금액 (예: "JPY:2800.00")
+  installmentTotal: number | null; // 총 할부 개월수 (예: 3, 10). null이면 일시불
+  installmentCurrent: number | null; // 현재 회차 (예: 3, 2)
+  installmentRemaining: number | null; // 결제후 남은 잔액 (원). 0이면 null
 }
 
 export interface HyundaiParseResult {
@@ -137,6 +140,36 @@ function parseMerchantName(rawMerchant: string): {
 }
 
 /**
+ * 할부/회차 문자열 파싱
+ * 예: "3/3" → { total: 3, current: 3 }
+ * 예: "10/2" → { total: 10, current: 2 }
+ * SheetJS가 "3/3"을 날짜 serial number로 변환할 수 있으므로 cell.w를 우선 사용
+ */
+function parseInstallment(cell: XLSX.CellObject | undefined): {
+  total: number | null;
+  current: number | null;
+} {
+  if (!cell) return { total: null, current: null };
+
+  // cell.w (formatted text)를 우선 사용하여 날짜 해석 방지
+  const raw = cell.w !== undefined ? cell.w : cell.v !== undefined ? String(cell.v) : "";
+  const trimmed = raw.trim();
+
+  if (!trimmed) return { total: null, current: null };
+
+  // "총회차/현재회차" 패턴 매칭 (예: "3/3", "10/2")
+  const match = trimmed.match(/^(\d{1,2})\/(\d{1,2})$/);
+  if (!match) return { total: null, current: null };
+
+  const total = parseInt(match[1], 10);
+  const current = parseInt(match[2], 10);
+
+  if (total <= 0 || current <= 0) return { total: null, current: null };
+
+  return { total, current };
+}
+
+/**
  * 셀 값을 문자열로 안전하게 변환
  */
 function cellToString(cell: XLSX.CellObject | undefined): string {
@@ -200,6 +233,8 @@ export function parseHyundaiExcel(
     const dateCell = sheet[XLSX.utils.encode_cell({ r: rowIdx, c: 0 })];
     const cardCell = sheet[XLSX.utils.encode_cell({ r: rowIdx, c: 1 })];
     const merchantCell = sheet[XLSX.utils.encode_cell({ r: rowIdx, c: 2 })];
+    // 할부/회차: col[3] (D열)
+    const installmentCell = sheet[XLSX.utils.encode_cell({ r: rowIdx, c: 3 })];
     // 결제원금: 헤더는 H(col7)이지만, 데이터에서 이용가맹점+이용금액이 합쳐져
     // 컬럼이 1칸 밀림. 실제 결제원금은 G(col6)에 위치.
     // col6이 0이고 col7에 값이 있으면 col7 사용 (일부 행은 밀리지 않음)
@@ -208,6 +243,9 @@ export function parseHyundaiExcel(
     const col6Val = parseAmount(cellToString(col6Cell));
     const col7Val = parseAmount(cellToString(col7Cell));
     const paymentPrincipalCell = col6Val !== 0 ? col6Cell : col7Cell; // 결제원금
+    // 결제후잔액: col[7] (H열). 결제원금이 col6이면 잔액은 col7
+    const remainingCell = col6Val !== 0 ? col7Cell : sheet[XLSX.utils.encode_cell({ r: rowIdx, c: 8 })];
+    const remainingVal = parseAmount(cellToString(remainingCell));
 
     const dateStr = cellToString(dateCell);
     const cardStr = cellToString(cardCell);
@@ -254,6 +292,9 @@ export function parseHyundaiExcel(
     const txYear = parseInt(yearStr, 10);
     const txMonth = parseInt(monthStr, 10);
 
+    // 할부 정보 파싱
+    const installment = parseInstallment(installmentCell);
+
     transactions.push({
       date: parsedDate,
       description: merchantName,
@@ -263,6 +304,9 @@ export function parseHyundaiExcel(
       month: txMonth,
       year: txYear,
       foreignCurrency,
+      installmentTotal: installment.total,
+      installmentCurrent: installment.current,
+      installmentRemaining: remainingVal !== 0 ? remainingVal : null,
     });
   }
 

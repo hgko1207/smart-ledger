@@ -26,6 +26,12 @@ interface MemberSummary {
   total: number;
 }
 
+interface InstallmentSummary {
+  activeCount: number;
+  totalRemaining: number;
+  monthlyPaymentTotal: number;
+}
+
 interface DashboardData {
   year: number;
   month: number;
@@ -112,6 +118,7 @@ export default function DashboardPage() {
   const [selectedYear, setSelectedYear] = useState(now.getFullYear());
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [data, setData] = useState<DashboardData | null>(null);
+  const [installments, setInstallments] = useState<InstallmentSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -121,15 +128,21 @@ export default function DashboardPage() {
     setLoading(true);
     setError("");
     try {
-      const res = await fetch(
-        `/api/dashboard?year=${selectedYear}&month=${selectedMonth}`
-      );
-      if (!res.ok) {
-        const errData = (await res.json()) as { error: string };
+      const [dashRes, installRes] = await Promise.all([
+        fetch(`/api/dashboard?year=${selectedYear}&month=${selectedMonth}`),
+        fetch("/api/installments"),
+      ]);
+      if (!dashRes.ok) {
+        const errData = (await dashRes.json()) as { error: string };
         throw new Error(errData.error);
       }
-      const result = (await res.json()) as DashboardData;
+      const result = (await dashRes.json()) as DashboardData;
       setData(result);
+
+      if (installRes.ok) {
+        const installData = (await installRes.json()) as InstallmentSummary;
+        setInstallments(installData);
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "데이터 로딩에 실패했습니다.";
@@ -214,7 +227,7 @@ export default function DashboardPage() {
         </div>
 
         {/* 요약 카드 */}
-        <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           {/* 이번 달 총 지출 */}
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
             <p className="text-sm text-gray-400 mb-1">이번 달 총 지출</p>
@@ -292,6 +305,31 @@ export default function DashboardPage() {
                 <p className="text-2xl font-bold text-gray-500">---</p>
                 <p className="text-xs text-gray-500 mt-1">
                   수입/적금 데이터 없음
+                </p>
+              </div>
+            )}
+          </div>
+
+          {/* 진행 중 할부 */}
+          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+            <p className="text-sm text-gray-400 mb-1">진행 중 할부</p>
+            {installments && installments.activeCount > 0 ? (
+              <div>
+                <p className="text-2xl font-bold text-orange-400">
+                  {installments.activeCount}건
+                </p>
+                <p className="text-xs text-gray-500 mt-1">
+                  잔액 {formatKRW(installments.totalRemaining)}
+                </p>
+                <p className="text-xs text-gray-500">
+                  월 {formatKRW(installments.monthlyPaymentTotal)}
+                </p>
+              </div>
+            ) : (
+              <div>
+                <p className="text-2xl font-bold text-gray-500">없음</p>
+                <p className="text-xs text-gray-500 mt-1">
+                  진행 중인 할부 없음
                 </p>
               </div>
             )}

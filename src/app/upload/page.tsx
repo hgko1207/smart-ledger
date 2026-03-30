@@ -133,6 +133,9 @@ export default function UploadPage() {
           year: tx.year,
           foreignCurrency: tx.foreignCurrency,
           statementFile: fileName,
+          installmentTotal: tx.installmentTotal,
+          installmentCurrent: tx.installmentCurrent,
+          installmentRemaining: tx.installmentRemaining,
         }));
 
       if (toSave.length === 0) {
