@@ -97,7 +97,7 @@ export default function AnalyticsPage() {
     try {
       const [analyticsRes, installRes] = await Promise.all([
         fetch(`/api/analytics?year=${selectedYear}&month=${selectedMonth}`),
-        fetch("/api/installments"),
+        fetch(`/api/installments?year=${selectedYear}&month=${selectedMonth}`),
       ]);
       if (!analyticsRes.ok) {
         const errData = (await analyticsRes.json()) as { error: string };

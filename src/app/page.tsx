@@ -130,7 +130,7 @@ export default function DashboardPage() {
     try {
       const [dashRes, installRes] = await Promise.all([
         fetch(`/api/dashboard?year=${selectedYear}&month=${selectedMonth}`),
-        fetch("/api/installments"),
+        fetch(`/api/installments?year=${selectedYear}&month=${selectedMonth}`),
       ]);
       if (!dashRes.ok) {
         const errData = (await dashRes.json()) as { error: string };

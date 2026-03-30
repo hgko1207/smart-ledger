@@ -24,12 +24,17 @@ export interface InstallmentsResponse {
 }
 
 /**
- * GET: 현재 진행 중인 할부 목록 조회
- * 가장 최근 명세서 기준으로 installmentCurrent < installmentTotal인 거래
+ * GET: 선택한 월 기준 할부 목록 조회
+ * ?year=2026&month=2 → 해당 월에 진행 중이던 할부만 표시
+ * 파라미터 없으면 전체 최신 기준
  */
-export async function GET() {
+export async function GET(request: Request) {
   try {
-    // 할부 정보가 있는 거래 조회 (installmentTotal이 NOT NULL이고 > 0)
+    const { searchParams } = new URL(request.url);
+    const yearParam = searchParams.get("year");
+    const monthParam = searchParams.get("month");
+
+    // 할부 정보가 있는 거래 조회
     const installmentTxs = await db
       .select()
       .from(transactions)
@@ -41,10 +46,19 @@ export async function GET() {
       )
       .orderBy(sql`${transactions.date} DESC`);
 
-    // 같은 가맹점+같은 할부기간에 대해 가장 최근 회차만 취하기
-    // key: description + installmentTotal
+    // 월 필터: 해당 월의 명세서에 포함된 할부만 표시
+    let filtered = installmentTxs;
+    if (yearParam && monthParam) {
+      const year = parseInt(yearParam, 10);
+      const month = parseInt(monthParam, 10);
+      filtered = installmentTxs.filter(
+        (tx) => tx.year === year && tx.month === month
+      );
+    }
+
+    // 같은 가맹점+같은 할부기간에 대해 해당 월의 회차만 취하기
     const latestByKey = new Map<string, typeof installmentTxs[number]>();
-    for (const tx of installmentTxs) {
+    for (const tx of filtered) {
       const key = `${tx.description}_${tx.installmentTotal}`;
       const existing = latestByKey.get(key);
       if (!existing || tx.date > existing.date) {
@@ -52,16 +66,15 @@ export async function GET() {
       }
     }
 
-    // 진행 중인 할부만 필터 (현재 회차 < 총 회차)
+    // 할부 목록 (진행 중 + 해당 월에 완료된 것 모두 포함)
     const activeInstallments: InstallmentItem[] = [];
 
     for (const tx of latestByKey.values()) {
       const total = tx.installmentTotal;
       const current = tx.installmentCurrent;
       if (total === null || current === null || total <= 0) continue;
-      if (current >= total) continue; // 완료된 할부
 
-      const remainingMonths = total - current;
+      const remainingMonths = Math.max(0, total - current);
       const remaining = tx.installmentRemaining ?? tx.amount * remainingMonths;
       const estimatedMonthly = remainingMonths > 0
         ? Math.round(remaining / remainingMonths)
