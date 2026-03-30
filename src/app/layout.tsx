@@ -28,7 +28,7 @@ export default function RootLayout({
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full bg-gray-950 text-white">
+      <body className="min-h-full bg-gray-950 text-white" suppressHydrationWarning>
         <Navigation />
         {/* 데스크탑: 사이드바 너비만큼 왼쪽 패딩 / 모바일: 하단 탭 바 높이만큼 패딩 */}
         <main className="md:pl-60 pb-20 md:pb-0 min-h-screen">

@@ -116,13 +116,14 @@ export async function GET(request: Request) {
 
     const totalIncome = Number(incomeRows[0]?.total ?? 0);
 
-    // 6. 적금 합산 (진행중인 적금)
+    // 6. 적금 합산 (선택 월에 진행중인 적금: 시작일 <= 선택월 AND (종료일 없음 OR 종료일 >= 선택월))
+    const selectedDate = `${year}-${String(month).padStart(2, "0")}-01`;
     const savingsRows = await db
       .select({
         total: sql<number>`sum(${savings.monthlyAmount})`,
       })
       .from(savings)
-      .where(sql`${savings.endDate} is null or ${savings.endDate} >= ${`${year}-${String(month).padStart(2, "0")}-01`}`);
+      .where(sql`${savings.startDate} <= ${selectedDate} AND (${savings.endDate} is null or ${savings.endDate} >= ${selectedDate})`);
 
     const totalSavings = Number(savingsRows[0]?.total ?? 0);
 
