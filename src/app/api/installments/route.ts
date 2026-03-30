@@ -1,52 +1,49 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { transactions } from "@/db/schema";
-import { and, isNotNull, gt, sql, lte } from "drizzle-orm";
+import { and, isNotNull, gt, sql } from "drizzle-orm";
 
-// 할부 항목 응답 타입
 export interface InstallmentItem {
   id: string;
-  date: string;
+  date: string; // 구매일
   description: string;
-  amount: number; // 이번 달 결제원금
+  amount: number; // 월 납부액 (1회차 기준)
   installmentTotal: number;
-  installmentCurrent: number;
-  installmentRemaining: number; // 결제후 남은 잔액
-  remainingMonths: number; // 남은 개월수
-  estimatedMonthlyPayment: number; // 월 예상 납부액
-  completionDate: string; // 완료 예정 월 (YYYY-MM)
-  isCompleted: boolean; // 완료 여부
+  installmentCurrent: number; // 선택 월 기준 예상 회차
+  installmentRemaining: number; // 남은 잔액
+  remainingMonths: number;
+  estimatedMonthlyPayment: number;
+  completionDate: string; // YYYY-MM
+  isCompleted: boolean;
 }
 
 export interface InstallmentsResponse {
   activeInstallments: InstallmentItem[];
   completedInstallments: InstallmentItem[];
-  totalRemaining: number; // 총 남은 잔액
-  monthlyPaymentTotal: number; // 월 총 할부 납부 예정액
-  activeCount: number; // 진행 중 할부 건수
+  totalRemaining: number;
+  monthlyPaymentTotal: number;
+  activeCount: number;
 }
 
 /**
- * 선택 월 기준 완료 예정 월 계산
- * 거래 날짜 + 남은 개월수로 추정
+ * 두 날짜 사이의 월수 차이 계산
+ * 카드 명세서는 대략 구매월 +1개월 후부터 청구 시작
  */
-function calcCompletionDate(txDate: string, installmentTotal: number, installmentCurrent: number): string {
-  const d = new Date(txDate);
-  // 현재 회차 기준으로, 완료까지 남은 개월 = total - current
-  // 완료 예정월 = 거래월 + (total - current)
-  const remaining = installmentTotal - installmentCurrent;
-  const completionMonth = new Date(d.getFullYear(), d.getMonth() + remaining, 1);
-  return `${completionMonth.getFullYear()}-${String(completionMonth.getMonth() + 1).padStart(2, "0")}`;
+function monthsBetween(fromDate: string, toYear: number, toMonth: number): number {
+  const d = new Date(fromDate);
+  const fromYear = d.getFullYear();
+  const fromMonth = d.getMonth() + 1; // 1-indexed
+  // 구매월의 다음 달부터 1회차 청구 → +1
+  return (toYear - fromYear) * 12 + (toMonth - fromMonth) + 1;
 }
 
 /**
- * GET: 선택한 월 기준 할부 목록 조회
- * ?year=2026&month=2 → 해당 월 기준으로 아직 진행 중인 할부 + 해당 월에 완료된 할부
+ * GET: 선택 월 기준 할부 상태 조회
  *
- * 로직:
- * 1. 선택 월 이전/포함하는 모든 할부 거래를 조회
- * 2. 같은 가맹점+할부기간의 가장 최근(선택월 이하) 회차를 기준으로 판단
- * 3. installmentCurrent < installmentTotal → 아직 진행 중
+ * 새 로직:
+ * 1. 모든 할부 거래에서 "가맹점+할부기간"별로 가장 낮은 installment_current(=첫 회차) 행을 찾음
+ * 2. 구매일 + 할부 총 기간으로 "선택 월이면 몇 회차인지" 계산
+ * 3. 계산된 회차 < 총 회차 → 진행 중 / >= 총 회차 → 완료
  */
 export async function GET(request: Request) {
   try {
@@ -54,69 +51,80 @@ export async function GET(request: Request) {
     const yearParam = searchParams.get("year");
     const monthParam = searchParams.get("month");
 
-    // 할부 정보가 있는 모든 거래 조회
-    const baseConditions = [
-      isNotNull(transactions.installmentTotal),
-      gt(transactions.installmentTotal, 0),
-    ];
+    const now = new Date();
+    const selectedYear = yearParam ? parseInt(yearParam, 10) : now.getFullYear();
+    const selectedMonth = monthParam ? parseInt(monthParam, 10) : now.getMonth() + 1;
 
-    // 선택 월이 있으면 해당 월 이전/포함하는 거래만 조회
-    if (yearParam && monthParam) {
-      const year = parseInt(yearParam, 10);
-      const month = parseInt(monthParam, 10);
-      // year-month를 YYYYMM 숫자로 만들어 비교
-      // (year * 100 + month) 형태로 비교
-      const targetYearMonth = year * 100 + month;
-      baseConditions.push(
-        lte(
-          sql`(${transactions.year} * 100 + ${transactions.month})`,
-          targetYearMonth
-        )
-      );
-    }
-
+    // 할부 거래 전체 조회
     const installmentTxs = await db
       .select()
       .from(transactions)
-      .where(and(...baseConditions))
-      .orderBy(sql`${transactions.date} DESC`);
+      .where(
+        and(
+          isNotNull(transactions.installmentTotal),
+          gt(transactions.installmentTotal, 0)
+        )
+      )
+      .orderBy(sql`${transactions.date} ASC`);
 
-    // 같은 가맹점+같은 할부기간에 대해 가장 최근(선택월 이하) 회차만 취하기
-    const latestByKey = new Map<string, typeof installmentTxs[number]>();
+    // 가맹점+할부기간별로 첫 회차(가장 낮은 installment_current) 찾기
+    // 이게 "이 할부가 시작된 시점"의 정보
+    const firstByKey = new Map<string, typeof installmentTxs[number]>();
     for (const tx of installmentTxs) {
+      if (tx.installmentTotal === null || tx.installmentCurrent === null) continue;
       const key = `${tx.description}_${tx.installmentTotal}`;
-      const existing = latestByKey.get(key);
-      if (!existing || tx.date > existing.date) {
-        latestByKey.set(key, tx);
+      const existing = firstByKey.get(key);
+      if (!existing || tx.installmentCurrent < existing.installmentCurrent!) {
+        firstByKey.set(key, tx);
       }
     }
 
     const activeInstallments: InstallmentItem[] = [];
     const completedInstallments: InstallmentItem[] = [];
 
-    for (const tx of latestByKey.values()) {
-      const total = tx.installmentTotal;
-      const current = tx.installmentCurrent;
-      if (total === null || current === null || total <= 0) continue;
+    for (const tx of firstByKey.values()) {
+      const total = tx.installmentTotal!;
+      const firstCurrent = tx.installmentCurrent!; // DB에 기록된 첫 회차
 
-      const remainingMonths = Math.max(0, total - current);
-      const remaining = tx.installmentRemaining ?? tx.amount * remainingMonths;
-      const estimatedMonthly = remainingMonths > 0
-        ? Math.round(remaining / remainingMonths)
-        : tx.amount;
-      const isCompleted = current >= total;
-      const completionDate = calcCompletionDate(tx.date, total, current);
+      // 선택 월 기준 예상 회차 계산
+      // 구매일로부터 선택 월까지 몇 개월 지났는지
+      const monthsElapsed = monthsBetween(tx.date, selectedYear, selectedMonth);
+
+      // 실제 예상 회차 = 첫 회차 + (경과 월 - 1) [첫 회차가 1이면 0개월 경과]
+      // 좀 더 정확하게: DB의 첫 회차(firstCurrent)가 기록된 시점이 기준
+      // 첫 회차가 1/3이고 구매월이 12월이면, 1월=2/3, 2월=3/3
+      const expectedCurrent = Math.min(
+        firstCurrent + Math.max(0, monthsElapsed - 1),
+        total
+      );
+
+      // 선택 월이 구매 전이면 아직 할부 시작 안 함
+      if (monthsElapsed < 1) continue;
+
+      const isCompleted = expectedCurrent >= total;
+      const remainingMonths = Math.max(0, total - expectedCurrent);
+      const monthlyPayment = tx.amount; // 1회차 납부액을 월 납부액으로 사용
+      const remaining = monthlyPayment * remainingMonths;
+
+      // 완료 예정월
+      const purchaseDate = new Date(tx.date);
+      const completionMonth = new Date(
+        purchaseDate.getFullYear(),
+        purchaseDate.getMonth() + total,
+        1
+      );
+      const completionDate = `${completionMonth.getFullYear()}-${String(completionMonth.getMonth() + 1).padStart(2, "0")}`;
 
       const item: InstallmentItem = {
         id: tx.id,
         date: tx.date,
         description: tx.description,
-        amount: tx.amount,
+        amount: monthlyPayment,
         installmentTotal: total,
-        installmentCurrent: current,
+        installmentCurrent: expectedCurrent,
         installmentRemaining: remaining,
         remainingMonths,
-        estimatedMonthlyPayment: estimatedMonthly,
+        estimatedMonthlyPayment: monthlyPayment,
         completionDate,
         isCompleted,
       };
@@ -128,28 +136,23 @@ export async function GET(request: Request) {
       }
     }
 
-    // 정렬: 진행 중은 남은 잔액 큰 순, 완료는 날짜 최신 순
     activeInstallments.sort((a, b) => b.installmentRemaining - a.installmentRemaining);
     completedInstallments.sort((a, b) => b.date.localeCompare(a.date));
 
     const totalRemaining = activeInstallments.reduce(
-      (sum, item) => sum + item.installmentRemaining,
-      0
+      (sum, item) => sum + item.installmentRemaining, 0
     );
     const monthlyPaymentTotal = activeInstallments.reduce(
-      (sum, item) => sum + item.estimatedMonthlyPayment,
-      0
+      (sum, item) => sum + item.estimatedMonthlyPayment, 0
     );
 
-    const response: InstallmentsResponse = {
+    return NextResponse.json({
       activeInstallments,
       completedInstallments,
       totalRemaining,
       monthlyPaymentTotal,
       activeCount: activeInstallments.length,
-    };
-
-    return NextResponse.json(response);
+    } satisfies InstallmentsResponse);
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "할부 조회 중 오류가 발생했습니다.";
