@@ -25,7 +25,7 @@ export const transactions = sqliteTable("transactions", {
 export const incomes = sqliteTable("incomes", {
   id: text("id").primaryKey(), // UUID
   date: text("date").notNull(), // ISO8601
-  source: text("source").notNull(), // salary | bonus | other
+  source: text("source").notNull(), // salary | bonus | freelance | tax_refund | investment | allowance | other
   amount: integer("amount").notNull(), // KRW 정수
   description: text("description"), // 설명 (선택)
   month: integer("month").notNull(),

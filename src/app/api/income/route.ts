@@ -3,11 +3,21 @@ import { db } from "@/db";
 import { incomes } from "@/db/schema";
 import { and, eq, desc } from "drizzle-orm";
 
+type IncomeSource = "salary" | "bonus" | "freelance" | "tax_refund" | "investment" | "allowance" | "other";
+
 interface IncomeInput {
   date: string;
-  source: "salary" | "bonus" | "other";
+  source: IncomeSource;
   amount: number;
   description: string | null;
+}
+
+interface IncomePatchInput {
+  id: string;
+  date?: string;
+  source?: IncomeSource;
+  amount?: number;
+  description?: string | null;
 }
 
 /**
@@ -79,6 +89,48 @@ export async function POST(request: Request) {
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "수입 추가 중 오류가 발생했습니다.";
+    return NextResponse.json({ error: message }, { status: 500 });
+  }
+}
+
+/**
+ * PATCH: 수입 수정
+ */
+export async function PATCH(request: Request) {
+  try {
+    const body = (await request.json()) as IncomePatchInput;
+
+    if (!body.id) {
+      return NextResponse.json(
+        { error: "수정할 수입 ID가 필요합니다." },
+        { status: 400 }
+      );
+    }
+
+    const updates: Record<string, string | number | null> = {};
+    if (body.date !== undefined) {
+      updates.date = body.date;
+      const d = new Date(body.date);
+      updates.month = d.getMonth() + 1;
+      updates.year = d.getFullYear();
+    }
+    if (body.source !== undefined) updates.source = body.source;
+    if (body.amount !== undefined) updates.amount = body.amount;
+    if (body.description !== undefined) updates.description = body.description;
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json(
+        { error: "수정할 필드가 없습니다." },
+        { status: 400 }
+      );
+    }
+
+    await db.update(incomes).set(updates).where(eq(incomes.id, body.id));
+
+    return NextResponse.json({ success: true });
+  } catch (err) {
+    const message =
+      err instanceof Error ? err.message : "수입 수정 중 오류가 발생했습니다.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
