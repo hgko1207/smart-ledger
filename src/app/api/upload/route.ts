@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
+import * as XLSX from "xlsx";
 import { parseHyundaiExcel } from "@/lib/parsers/hyundai";
+import { parseKBExcel } from "@/lib/parsers/kb";
 import { categorizeAll } from "@/lib/parsers/categorizer";
 import {
   detectDuplicates,
@@ -51,8 +53,35 @@ export async function POST(request: Request) {
     // 파일을 ArrayBuffer로 읽기
     const buffer = await file.arrayBuffer();
 
-    // 현대카드 파서로 파싱
-    const parseResult = parseHyundaiExcel(buffer, fileName);
+    // 카드사 자동 감지: 시트 내 헤더 행 확인
+    const detectWorkbook = XLSX.read(buffer, {
+      type: "array",
+      codepage: 949,
+      sheetRows: 5, // 헤더 확인용 5행만 읽기
+    });
+    const detectSheet = detectWorkbook.Sheets[detectWorkbook.SheetNames[0]];
+    // 시트의 모든 셀 값을 합쳐서 "이용일자" 키워드 존재 여부로 국민카드 판별
+    let sheetText = "";
+    if (detectSheet) {
+      const detectRange = XLSX.utils.decode_range(
+        detectSheet["!ref"] ?? "A1"
+      );
+      for (let r = detectRange.s.r; r <= detectRange.e.r; r++) {
+        for (let c = detectRange.s.c; c <= detectRange.e.c; c++) {
+          const cell =
+            detectSheet[XLSX.utils.encode_cell({ r, c })] as
+              | XLSX.CellObject
+              | undefined;
+          if (cell?.v !== undefined) sheetText += String(cell.v) + " ";
+        }
+      }
+    }
+
+    // "이용일자" 키워드가 있으면 국민카드, 아니면 현대카드
+    const isKB = sheetText.includes("이용일자");
+    const parseResult = isKB
+      ? parseKBExcel(buffer, fileName)
+      : parseHyundaiExcel(buffer, fileName);
 
     if (parseResult.transactions.length === 0) {
       return NextResponse.json(
