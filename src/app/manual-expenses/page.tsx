@@ -9,6 +9,7 @@ type ManualCategory =
   | "계모임/회비"
   | "주택대출"
   | "차량대출"
+  | "가족대출"
   | "기타대출"
   | "현금지출"
   | "계좌이체"
@@ -20,6 +21,7 @@ const CATEGORIES: ManualCategory[] = [
   "계모임/회비",
   "주택대출",
   "차량대출",
+  "가족대출",
   "기타대출",
   "현금지출",
   "계좌이체",
@@ -32,6 +34,7 @@ const CATEGORY_COLORS: Record<string, string> = {
   "계모임/회비": "bg-indigo-500/20 text-indigo-400",
   "주택대출": "bg-red-500/20 text-red-400",
   "차량대출": "bg-orange-500/20 text-orange-400",
+  "가족대출": "bg-rose-500/20 text-rose-400",
   "기타대출": "bg-amber-500/20 text-amber-400",
   "현금지출": "bg-green-500/20 text-green-400",
   "계좌이체": "bg-cyan-500/20 text-cyan-400",
@@ -228,7 +231,7 @@ export default function ManualExpensesPage() {
   const totalAmount = expenses.reduce((sum, tx) => sum + tx.amount, 0);
   const recurringCount = expenses.filter((tx) => tx.isRecurring === 1).length;
   const loanRepayment = expenses
-    .filter((tx) => tx.category === "주택대출" || tx.category === "차량대출" || tx.category === "기타대출")
+    .filter((tx) => tx.category === "주택대출" || tx.category === "차량대출" || tx.category === "가족대출" || tx.category === "기타대출")
     .reduce((sum, tx) => sum + tx.amount, 0);
 
   return (
