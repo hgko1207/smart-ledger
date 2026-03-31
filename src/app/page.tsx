@@ -267,7 +267,7 @@ export default function DashboardPage() {
             </select>
             <a
               href="/upload"
-              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors"
+              className="px-4 py-2 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium text-white transition-colors"
             >
               업로드
             </a>
@@ -285,7 +285,7 @@ export default function DashboardPage() {
             </p>
             <a
               href="/upload"
-              className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium transition-colors"
+              className="inline-block px-6 py-3 bg-blue-600 hover:bg-blue-700 rounded-lg font-medium text-white transition-colors"
             >
               명세서 업로드하기
             </a>
