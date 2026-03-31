@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
 
 interface InstallmentItem {
   id: string;
@@ -54,8 +55,11 @@ function getMonthOptions(): { year: number; month: number; label: string }[] {
 
 export default function InstallmentsPage() {
   const now = new Date();
-  const [selectedYear, setSelectedYear] = useState(now.getFullYear());
-  const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
+  const searchParams = useSearchParams();
+  const paramYear = searchParams.get("year");
+  const paramMonth = searchParams.get("month");
+  const [selectedYear, setSelectedYear] = useState(paramYear ? parseInt(paramYear, 10) : now.getFullYear());
+  const [selectedMonth, setSelectedMonth] = useState(paramMonth ? parseInt(paramMonth, 10) : now.getMonth() + 1);
   const [data, setData] = useState<InstallmentsResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");

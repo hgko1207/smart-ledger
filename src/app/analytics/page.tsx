@@ -495,7 +495,7 @@ export default function AnalyticsPage() {
                     </p>
                   </div>
                   <a
-                    href="/installments"
+                    href={`/installments?year=${selectedYear}&month=${selectedMonth}`}
                     className="px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl text-sm text-white transition-colors shrink-0"
                     aria-label="할부 상세 페이지로 이동"
                   >
