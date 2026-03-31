@@ -121,6 +121,7 @@ export default function SettingsPage() {
   const [newCategory, setNewCategory] = useState("");
   const [newPriority, setNewPriority] = useState("0");
   const [submitting, setSubmitting] = useState(false);
+  const [showRules, setShowRules] = useState(false);
 
   const fetchRules = useCallback(async () => {
     setLoading(true);
@@ -321,8 +322,21 @@ export default function SettingsPage() {
             </div>
           </form>
 
-          {/* 규칙 목록 */}
-          {loading ? (
+          {/* 규칙 목록 — 접기/펼기 */}
+          <button
+            onClick={() => setShowRules(!showRules)}
+            aria-expanded={showRules}
+            aria-label={showRules ? "규칙 목록 접기" : "규칙 목록 펼치기"}
+            className="w-full flex items-center justify-between px-4 py-3 bg-gray-100 dark:bg-gray-800/50 rounded-xl mb-4 hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+          >
+            <span className="text-sm text-gray-600 dark:text-gray-300 font-medium">
+              등록된 규칙 {rules.length}개
+            </span>
+            <span className="text-gray-400 text-xs">
+              {showRules ? "접기 ▲" : "펼치기 ▼"}
+            </span>
+          </button>
+          {showRules && (loading ? (
             <div className="flex items-center justify-center py-10">
               <div className="flex items-center gap-3">
                 <svg className="w-5 h-5 text-gray-500 animate-spin" fill="none" viewBox="0 0 24 24" aria-label="로딩">
@@ -393,7 +407,7 @@ export default function SettingsPage() {
                 </tbody>
               </table>
             </div>
-          )}
+          ))}
         </div>
 
         {/* 예산 설정 */}
