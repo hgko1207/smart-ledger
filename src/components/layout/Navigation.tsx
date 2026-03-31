@@ -10,6 +10,11 @@ interface NavItem {
   icon: React.ReactNode;
 }
 
+interface NavGroup {
+  label: string;
+  items: NavItem[];
+}
+
 function HomeIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -131,6 +136,27 @@ function CreditCardIcon({ className }: { className?: string }) {
   );
 }
 
+function CashOutIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <rect x="2" y="6" width="16" height="12" rx="2" />
+      <circle cx="10" cy="12" r="3" />
+      <path d="M18 8h2a2 2 0 0 1 2 2v4a2 2 0 0 1-2 2h-2" />
+      <path d="M22 12l-2-2m2 2l-2 2" />
+    </svg>
+  );
+}
+
 function SettingsIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -194,17 +220,42 @@ function MoonIcon({ className }: { className?: string }) {
   );
 }
 
-const navItems: NavItem[] = [
-  { href: "/", label: "대시보드", icon: <HomeIcon className="w-5 h-5" /> },
-  { href: "/expenses", label: "지출 상세", icon: <ListIcon className="w-5 h-5" /> },
-  { href: "/analytics", label: "분석", icon: <ChartIcon className="w-5 h-5" /> },
-  { href: "/income", label: "수입/저축", icon: <WalletIcon className="w-5 h-5" /> },
-  { href: "/installments", label: "할부", icon: <CreditCardIcon className="w-5 h-5" /> },
-  { href: "/upload", label: "업로드", icon: <UploadIcon className="w-5 h-5" /> },
+const navGroups: NavGroup[] = [
+  {
+    label: "한눈에 보기",
+    items: [
+      { href: "/", label: "대시보드", icon: <HomeIcon className="w-5 h-5" /> },
+    ],
+  },
+  {
+    label: "돈 관리",
+    items: [
+      { href: "/expenses", label: "지출 내역", icon: <ListIcon className="w-5 h-5" /> },
+      { href: "/income", label: "수입/저축", icon: <WalletIcon className="w-5 h-5" /> },
+      { href: "/manual-expenses", label: "기타 지출", icon: <CashOutIcon className="w-5 h-5" /> },
+      { href: "/installments", label: "할부", icon: <CreditCardIcon className="w-5 h-5" /> },
+    ],
+  },
+  {
+    label: "도구",
+    items: [
+      { href: "/analytics", label: "분석", icon: <ChartIcon className="w-5 h-5" /> },
+      { href: "/upload", label: "업로드", icon: <UploadIcon className="w-5 h-5" /> },
+    ],
+  },
 ];
 
 const bottomNavItems: NavItem[] = [
   { href: "/settings", label: "설정", icon: <SettingsIcon className="w-5 h-5" /> },
+];
+
+// 모바일 하단 탭바: 주요 5개만
+const mobileTabItems: NavItem[] = [
+  { href: "/", label: "대시보드", icon: <HomeIcon className="w-5 h-5" /> },
+  { href: "/expenses", label: "지출 내역", icon: <ListIcon className="w-5 h-5" /> },
+  { href: "/income", label: "수입/저축", icon: <WalletIcon className="w-5 h-5" /> },
+  { href: "/manual-expenses", label: "기타 지출", icon: <CashOutIcon className="w-5 h-5" /> },
+  { href: "/analytics", label: "분석", icon: <ChartIcon className="w-5 h-5" /> },
 ];
 
 function isActive(pathname: string, href: string): boolean {
@@ -280,26 +331,35 @@ export default function Navigation() {
         </div>
 
         {/* 메뉴 */}
-        <nav className="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
-          {navItems.map((item) => {
-            const active = isActive(pathname, item.href);
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
-                  active
-                    ? "bg-blue-600 text-white"
-                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60"
-                }`}
-              >
-                <span className={active ? "text-white" : "text-gray-400 dark:text-gray-500"}>
-                  {item.icon}
-                </span>
-                {item.label}
-              </Link>
-            );
-          })}
+        <nav className="flex-1 px-3 py-2 overflow-y-auto">
+          {navGroups.map((group) => (
+            <div key={group.label}>
+              <p className="text-xs uppercase tracking-wider text-gray-500 dark:text-gray-500 px-4 pt-6 pb-2">
+                {group.label}
+              </p>
+              <div className="space-y-1">
+                {group.items.map((item) => {
+                  const active = isActive(pathname, item.href);
+                  return (
+                    <Link
+                      key={item.href}
+                      href={item.href}
+                      className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
+                        active
+                          ? "bg-blue-600 text-white"
+                          : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60"
+                      }`}
+                    >
+                      <span className={active ? "text-white" : "text-gray-400 dark:text-gray-500"}>
+                        {item.icon}
+                      </span>
+                      {item.label}
+                    </Link>
+                  );
+                })}
+              </div>
+            </div>
+          ))}
         </nav>
 
         {/* 하단 메뉴 + 테마 토글 */}
@@ -346,7 +406,7 @@ export default function Navigation() {
       {/* 모바일 하단 탭 바 */}
       <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-950/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 z-40 safe-area-bottom">
         <div className="flex items-center justify-around h-16">
-          {[...navItems, ...bottomNavItems].map((item) => {
+          {mobileTabItems.map((item) => {
             const active = isActive(pathname, item.href);
             return (
               <Link

@@ -18,6 +18,7 @@ export const transactions = sqliteTable("transactions", {
   installmentTotal: integer("installment_total"), // 총 할부 개월수 (예: 3, 10). null이면 일시불
   installmentCurrent: integer("installment_current"), // 현재 회차 (예: 3, 2)
   installmentRemaining: integer("installment_remaining"), // 결제후 남은 잔액 (원)
+  isRecurring: integer("is_recurring"), // 매월 반복 여부 (0/1, 수동 지출용)
   createdAt: text("created_at").notNull(), // ISO8601
 });
 
