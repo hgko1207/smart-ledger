@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import {
   PieChart,
   Pie,
@@ -12,9 +12,7 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
-  Legend,
 } from "recharts";
-import type { PieLabelRenderProps } from "recharts";
 
 interface CategorySummary {
   category: string;
@@ -39,6 +37,7 @@ interface DashboardData {
   totalRefund: number;
   netExpense: number;
   categoryBreakdown: CategorySummary[];
+  prevCategoryBreakdown: CategorySummary[];
   memberBreakdown: MemberSummary[];
   previousMonthExpense: number;
   changeRate: number | null;
@@ -48,14 +47,67 @@ interface DashboardData {
   savingsRate: number | null;
 }
 
+/** 전월 대비 가장 크게 변한 카테고리 인사이트 생성 */
+function generateInsight(
+  current: CategorySummary[],
+  prev: CategorySummary[],
+  changeRate: number | null
+): string | null {
+  // 전체 지출 감소 시
+  if (changeRate !== null && changeRate < -10) {
+    return `지난달보다 ${Math.abs(changeRate).toFixed(0)}% 절약했어요! 잘하고 있어요 👏`;
+  }
+
+  if (prev.length === 0 || current.length === 0) return null;
+
+  const prevMap = new Map(prev.map((c) => [c.category, c.total]));
+  let maxIncrease = { category: "", rate: 0, amount: 0, prevAmount: 0 };
+
+  for (const cat of current) {
+    const prevTotal = prevMap.get(cat.category) ?? 0;
+    if (prevTotal < 10000) continue; // 너무 작은 금액 변동은 무시
+    const rate = ((cat.total - prevTotal) / prevTotal) * 100;
+    if (rate > maxIncrease.rate) {
+      maxIncrease = { category: cat.category, rate, amount: cat.total, prevAmount: prevTotal };
+    }
+  }
+
+  if (maxIncrease.rate > 15) {
+    const diff = maxIncrease.amount - maxIncrease.prevAmount;
+    return `${maxIncrease.category}이(가) 전월보다 ${maxIncrease.rate.toFixed(0)}% 증가했어요 (+${diff.toLocaleString("ko-KR")}원)`;
+  }
+
+  // 큰 변동 없으면 가장 많이 쓴 카테고리
+  const top = current.reduce((a, b) => (a.total > b.total ? a : b));
+  return `이번 달은 ${top.category}에 가장 많이 지출했어요 (${top.total.toLocaleString("ko-KR")}원)`;
+}
+
 const COLORS = [
   "#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6",
   "#ec4899", "#06b6d4", "#f97316", "#84cc16", "#6366f1",
   "#14b8a6", "#e11d48", "#a855f7", "#0ea5e9", "#d946ef",
 ];
 
+const CATEGORY_SHORT_NAMES: Record<string, string> = {
+  "식료품/마트": "마트",
+  "주거/관리비": "주거비",
+  "교통/자동차": "교통",
+  "의료/건강": "의료",
+  "교육/학원": "교육",
+  "문화/여가": "문화",
+  "의류/미용": "의류",
+  "통신/구독": "통신",
+  "보험/세금": "보험",
+  "카페/간식": "카페",
+  "외식/배달": "외식",
+};
+
 function formatKRW(amount: number): string {
   return `${amount.toLocaleString("ko-KR")}원`;
+}
+
+function shortenCategory(name: string): string {
+  return CATEGORY_SHORT_NAMES[name] ?? name;
 }
 
 // 월 선택 옵션 생성 (최근 12개월)
@@ -71,36 +123,6 @@ function getMonthOptions(): { year: number; month: number; label: string }[] {
     });
   }
   return options;
-}
-
-// Pie 차트 커스텀 라벨
-function renderCustomLabel(props: PieLabelRenderProps) {
-  const cx = Number(props.cx ?? 0);
-  const cy = Number(props.cy ?? 0);
-  const midAngle = Number(props.midAngle ?? 0);
-  const innerRadius = Number(props.innerRadius ?? 0);
-  const outerRadius = Number(props.outerRadius ?? 0);
-  const percent = Number(props.percent ?? 0);
-  const name = String(props.name ?? "");
-
-  if (percent < 0.04) return null;
-  const RADIAN = Math.PI / 180;
-  const radius = innerRadius + (outerRadius - innerRadius) * 1.4;
-  const x = cx + radius * Math.cos(-midAngle * RADIAN);
-  const y = cy + radius * Math.sin(-midAngle * RADIAN);
-
-  return (
-    <text
-      x={x}
-      y={y}
-      fill="#d1d5db"
-      textAnchor={x > cx ? "start" : "end"}
-      dominantBaseline="central"
-      fontSize={12}
-    >
-      {name} {(percent * 100).toFixed(0)}%
-    </text>
-  );
 }
 
 // Tooltip 포맷터
@@ -121,6 +143,7 @@ export default function DashboardPage() {
   const [installments, setInstallments] = useState<InstallmentSummary | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [showAllCategories, setShowAllCategories] = useState(false);
 
   const monthOptions = getMonthOptions();
 
@@ -162,6 +185,31 @@ export default function DashboardPage() {
     setSelectedMonth(parseInt(m, 10));
   }
 
+  const pieData = useMemo(() => {
+    if (!data) return [];
+    return data.categoryBreakdown
+      .filter((c) => c.total > 0)
+      .sort((a, b) => b.total - a.total);
+  }, [data]);
+
+  const barData = useMemo(() => {
+    if (!data) return [];
+    return data.categoryBreakdown
+      .filter((c) => c.total > 0)
+      .sort((a, b) => b.total - a.total);
+  }, [data]);
+
+  const categoryListData = useMemo(() => {
+    if (!data) return [];
+    return data.categoryBreakdown
+      .filter((c) => c.total > 0)
+      .sort((a, b) => b.total - a.total);
+  }, [data]);
+
+  const pieTotal = useMemo(() => {
+    return pieData.reduce((sum, c) => sum + c.total, 0);
+  }, [pieData]);
+
   if (loading) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
@@ -188,28 +236,28 @@ export default function DashboardPage() {
 
   if (!data) return null;
 
-  const pieData = data.categoryBreakdown
-    .filter((c) => c.total > 0)
-    .sort((a, b) => b.total - a.total);
-
-  const barData = data.categoryBreakdown
-    .filter((c) => c.total > 0)
-    .sort((a, b) => b.total - a.total);
+  const hasIncome = data.totalIncome > 0;
+  const memberTotal = data.memberBreakdown.reduce((s, m) => s + m.total, 0);
+  const visibleCategories = showAllCategories
+    ? categoryListData
+    : categoryListData.slice(0, 5);
+  const maxCategoryTotal = categoryListData.length > 0 ? categoryListData[0].total : 0;
 
   return (
     <div>
       <div className="max-w-6xl mx-auto px-4 py-8">
-        {/* 헤더 */}
-        <div className="flex items-center justify-between mb-8">
+        {/* 헤더 + 월 선택 */}
+        <div className="flex items-center justify-between mb-10">
           <div>
             <h1 className="text-2xl font-bold">대시보드</h1>
-            <p className="text-gray-400">가계부 한눈에 보기</p>
+            <p className="text-gray-400 text-sm">가계부 한눈에 보기</p>
           </div>
-          <div className="flex items-center gap-4">
+          <div className="flex items-center gap-3">
             <select
               value={`${selectedYear}-${selectedMonth}`}
               onChange={handleMonthChange}
-              className="bg-gray-900 border border-gray-700 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
+              aria-label="월 선택"
+              className="bg-gray-900 border border-gray-800 rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {monthOptions.map((opt) => (
                 <option key={`${opt.year}-${opt.month}`} value={`${opt.year}-${opt.month}`}>
@@ -226,292 +274,14 @@ export default function DashboardPage() {
           </div>
         </div>
 
-        {/* 요약 카드 */}
-        <div className="grid grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
-          {/* 이번 달 총 지출 */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <p className="text-sm text-gray-400 mb-1">이번 달 총 지출</p>
-            <p className="text-2xl font-bold">{formatKRW(data.netExpense)}</p>
-            {data.totalRefund < 0 && (
-              <p className="text-xs text-green-400 mt-1">
-                환불 {formatKRW(Math.abs(data.totalRefund))}
-              </p>
-            )}
-          </div>
-
-          {/* 지난달 대비 */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <p className="text-sm text-gray-400 mb-1">지난달 대비</p>
-            {data.changeRate !== null ? (
-              <div className="flex items-baseline gap-2">
-                <span
-                  className={`text-2xl font-bold ${
-                    data.changeRate > 0 ? "text-red-400" : "text-green-400"
-                  }`}
-                >
-                  {data.changeRate > 0 ? "+" : ""}
-                  {data.changeRate.toFixed(1)}%
-                </span>
-                <span className="text-lg">
-                  {data.changeRate > 0 ? "\u2191" : "\u2193"}
-                </span>
-              </div>
-            ) : (
-              <p className="text-2xl font-bold text-gray-500">---</p>
-            )}
-            {data.previousMonthExpense > 0 && (
-              <p className="text-xs text-gray-500 mt-1">
-                전월 {formatKRW(data.previousMonthExpense)}
-              </p>
-            )}
-          </div>
-
-          {/* 수입 대비 지출 */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <p className="text-sm text-gray-400 mb-1">수입 대비 지출</p>
-            {data.expenseToIncomeRatio !== null ? (
-              <div>
-                <p className="text-2xl font-bold">
-                  {data.expenseToIncomeRatio.toFixed(1)}%
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  수입 {formatKRW(data.totalIncome)}
-                </p>
-              </div>
-            ) : (
-              <div>
-                <p className="text-2xl font-bold text-gray-500">---</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  수입 데이터 없음
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* 저축률 */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <p className="text-sm text-gray-400 mb-1">저축률</p>
-            {data.savingsRate !== null ? (
-              <div>
-                <p className="text-2xl font-bold text-blue-400">
-                  {data.savingsRate.toFixed(1)}%
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  월 적금 {formatKRW(data.totalSavings)}
-                </p>
-              </div>
-            ) : (
-              <div>
-                <p className="text-2xl font-bold text-gray-500">---</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  수입/적금 데이터 없음
-                </p>
-              </div>
-            )}
-          </div>
-
-          {/* 진행 중 할부 */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <p className="text-sm text-gray-400 mb-1">진행 중 할부</p>
-            {installments && installments.activeCount > 0 ? (
-              <div>
-                <p className="text-2xl font-bold text-orange-400">
-                  {installments.activeCount}건
-                </p>
-                <p className="text-xs text-gray-500 mt-1">
-                  잔액 {formatKRW(installments.totalRemaining)}
-                </p>
-                <p className="text-xs text-gray-500">
-                  월 {formatKRW(installments.monthlyPaymentTotal)}
-                </p>
-              </div>
-            ) : (
-              <div>
-                <p className="text-2xl font-bold text-gray-500">없음</p>
-                <p className="text-xs text-gray-500 mt-1">
-                  진행 중인 할부 없음
-                </p>
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 본인/가족 지출 비교 */}
-        {data.memberBreakdown.length > 0 && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8">
-            <h2 className="text-lg font-semibold mb-4">본인 / 가족 지출</h2>
-            <div className="flex gap-6">
-              {data.memberBreakdown.map((m) => {
-                const pct =
-                  data.netExpense > 0
-                    ? ((m.total / data.netExpense) * 100).toFixed(1)
-                    : "0";
-                return (
-                  <div key={m.memberType} className="flex-1">
-                    <div className="flex justify-between mb-2">
-                      <span className="text-gray-300">{m.memberType}</span>
-                      <span className="font-medium">{formatKRW(m.total)}</span>
-                    </div>
-                    <div className="w-full bg-gray-800 rounded-full h-3">
-                      <div
-                        className={`h-3 rounded-full ${
-                          m.memberType === "본인"
-                            ? "bg-blue-500"
-                            : "bg-purple-500"
-                        }`}
-                        style={{
-                          width: `${data.netExpense > 0 ? (m.total / data.netExpense) * 100 : 0}%`,
-                        }}
-                      />
-                    </div>
-                    <p className="text-xs text-gray-500 mt-1">{pct}%</p>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
-
-        {/* 차트 영역 */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-8">
-          {/* 파이차트 */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <h2 className="text-lg font-semibold mb-4">카테고리별 비율</h2>
-            {pieData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={320}>
-                <PieChart>
-                  <Pie
-                    data={pieData}
-                    dataKey="total"
-                    nameKey="category"
-                    cx="50%"
-                    cy="50%"
-                    outerRadius={100}
-                    label={renderCustomLabel}
-                    labelLine={false}
-                  >
-                    {pieData.map((_, index) => (
-                      <Cell
-                        key={`cell-${index}`}
-                        fill={COLORS[index % COLORS.length]}
-                      />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={tooltipFormatter}
-                    contentStyle={{
-                      backgroundColor: "#1f2937",
-                      border: "1px solid #374151",
-                      borderRadius: "8px",
-                      color: "#fff",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-80 flex items-center justify-center text-gray-500">
-                이번 달 지출 데이터가 없습니다.
-              </div>
-            )}
-          </div>
-
-          {/* 바차트 */}
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <h2 className="text-lg font-semibold mb-4">카테고리별 지출</h2>
-            {barData.length > 0 ? (
-              <ResponsiveContainer width="100%" height={320}>
-                <BarChart
-                  data={barData}
-                  layout="vertical"
-                  margin={{ top: 0, right: 20, left: 60, bottom: 0 }}
-                >
-                  <CartesianGrid strokeDasharray="3 3" stroke="#374151" />
-                  <XAxis
-                    type="number"
-                    tickFormatter={(v: number) =>
-                      v >= 10000 ? `${(v / 10000).toFixed(0)}만` : `${v}`
-                    }
-                    stroke="#9ca3af"
-                    fontSize={12}
-                  />
-                  <YAxis
-                    type="category"
-                    dataKey="category"
-                    stroke="#9ca3af"
-                    fontSize={12}
-                    width={55}
-                  />
-                  <Tooltip
-                    formatter={tooltipFormatter}
-                    contentStyle={{
-                      backgroundColor: "#1f2937",
-                      border: "1px solid #374151",
-                      borderRadius: "8px",
-                      color: "#fff",
-                    }}
-                    labelStyle={{ color: "#d1d5db" }}
-                  />
-                  <Legend />
-                  <Bar
-                    dataKey="total"
-                    name="지출"
-                    fill="#3b82f6"
-                    radius={[0, 4, 4, 0]}
-                  />
-                </BarChart>
-              </ResponsiveContainer>
-            ) : (
-              <div className="h-80 flex items-center justify-center text-gray-500">
-                이번 달 지출 데이터가 없습니다.
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* 카테고리별 상세 목록 */}
-        {data.categoryBreakdown.length > 0 && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-            <h2 className="text-lg font-semibold mb-4">카테고리별 상세</h2>
-            <div className="space-y-3">
-              {data.categoryBreakdown
-                .filter((c) => c.total > 0)
-                .sort((a, b) => b.total - a.total)
-                .map((cat, i) => {
-                  const maxTotal = data.categoryBreakdown.reduce(
-                    (max, c) => Math.max(max, c.total),
-                    0
-                  );
-                  const widthPct =
-                    maxTotal > 0 ? (cat.total / maxTotal) * 100 : 0;
-                  return (
-                    <div key={cat.category} className="flex items-center gap-4">
-                      <span className="text-sm text-gray-300 w-20 shrink-0">
-                        {cat.category}
-                      </span>
-                      <div className="flex-1 bg-gray-800 rounded-full h-4">
-                        <div
-                          className="h-4 rounded-full transition-all"
-                          style={{
-                            width: `${widthPct}%`,
-                            backgroundColor: COLORS[i % COLORS.length],
-                          }}
-                        />
-                      </div>
-                      <span className="text-sm font-mono text-gray-300 w-28 text-right shrink-0">
-                        {formatKRW(cat.total)}
-                      </span>
-                    </div>
-                  );
-                })}
-            </div>
-          </div>
-        )}
-
-        {/* 데이터 없는 경우 */}
-        {data.categoryBreakdown.length === 0 && (
+        {/* 빈 상태 */}
+        {data.categoryBreakdown.length === 0 ? (
           <div className="bg-gray-900 border border-gray-800 rounded-2xl p-16 text-center">
-            <p className="text-xl text-gray-500 mb-4">
+            <p className="text-xl text-gray-400 mb-2">
               {data.year}년 {data.month}월 데이터가 없습니다.
+            </p>
+            <p className="text-sm text-gray-500 mb-6">
+              명세서를 업로드하세요
             </p>
             <a
               href="/upload"
@@ -520,9 +290,277 @@ export default function DashboardPage() {
               명세서 업로드하기
             </a>
           </div>
+        ) : (
+          <>
+            {/* 1. 히어로 섹션 - 총 지출 */}
+            <section className="mb-10" aria-label="이번 달 총 지출">
+              <p className="text-sm text-gray-400 mb-1">
+                {data.year}년 {data.month}월 지출
+              </p>
+              <p className="text-4xl md:text-5xl font-black text-white tracking-tight">
+                {formatKRW(data.netExpense)}
+              </p>
+              <div className="flex items-center gap-3 mt-2">
+                {data.changeRate !== null ? (
+                  <span
+                    className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${
+                      data.changeRate > 0
+                        ? "bg-red-500/10 text-red-400"
+                        : "bg-green-500/10 text-green-400"
+                    }`}
+                  >
+                    {data.changeRate > 0 ? "\u2191" : "\u2193"}
+                    {data.changeRate > 0 ? "+" : ""}
+                    {data.changeRate.toFixed(1)}%
+                  </span>
+                ) : (
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-800 text-gray-500">
+                    전월 데이터 없음
+                  </span>
+                )}
+                {data.previousMonthExpense > 0 && (
+                  <span className="text-xs text-gray-500">
+                    전월 {formatKRW(data.previousMonthExpense)}
+                  </span>
+                )}
+              </div>
+              {data.totalRefund < 0 && (
+                <p className="text-xs text-green-400 mt-1">
+                  환불 {formatKRW(Math.abs(data.totalRefund))}
+                </p>
+              )}
+            </section>
+
+            {/* 2. 요약 카드 그리드 */}
+            <div
+              className={`grid gap-4 mb-10 ${
+                hasIncome ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-1 max-w-sm"
+              }`}
+            >
+              {/* 수입 대비 지출 */}
+              {hasIncome && (
+                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-blue-500/10 flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-blue-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">수입 대비 지출</p>
+                    <p className="text-xl font-bold text-white">
+                      {data.expenseToIncomeRatio !== null
+                        ? `${data.expenseToIncomeRatio.toFixed(1)}%`
+                        : "---"}
+                    </p>
+                    <p className="text-xs text-gray-500">수입 {formatKRW(data.totalIncome)}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* 저축률 */}
+              {hasIncome && (
+                <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex items-start gap-4">
+                  <div className="w-10 h-10 rounded-full bg-green-500/10 flex items-center justify-center shrink-0">
+                    <svg className="w-5 h-5 text-green-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17 9V7a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2m2 4h10a2 2 0 002-2v-6a2 2 0 00-2-2H9a2 2 0 00-2 2v6a2 2 0 002 2zm7-5a2 2 0 11-4 0 2 2 0 014 0z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400">저축률</p>
+                    <p className="text-xl font-bold text-white">
+                      {data.savingsRate !== null
+                        ? `${data.savingsRate.toFixed(1)}%`
+                        : "---"}
+                    </p>
+                    <p className="text-xs text-gray-500">월 적금 {formatKRW(data.totalSavings)}</p>
+                  </div>
+                </div>
+              )}
+
+              {/* 진행 중 할부 */}
+              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 flex items-start gap-4">
+                <div className="w-10 h-10 rounded-full bg-orange-500/10 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-orange-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">진행 중 할부</p>
+                  {installments && installments.activeCount > 0 ? (
+                    <>
+                      <p className="text-xl font-bold text-white">
+                        {installments.activeCount}건
+                      </p>
+                      <p className="text-xs text-gray-500">
+                        잔액 {formatKRW(installments.totalRemaining)} / 월 {formatKRW(installments.monthlyPaymentTotal)}
+                      </p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xl font-bold text-gray-500">없음</p>
+                      <p className="text-xs text-gray-500">진행 중인 할부 없음</p>
+                    </>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* 3. 본인/가족 비교 - 토스 스타일 바 */}
+            {data.memberBreakdown.length > 1 && memberTotal > 0 && (
+              <section className="mb-10" aria-label="본인 가족 지출 비교">
+                <div className="flex items-baseline justify-between mb-3">
+                  <h2 className="text-lg font-semibold text-white">본인 / 가족 지출</h2>
+                  <span className="text-sm text-gray-400">총 {formatKRW(memberTotal)}</span>
+                </div>
+                {/* 가로 바 */}
+                <div className="w-full h-8 rounded-full overflow-hidden flex">
+                  {data.memberBreakdown
+                    .sort((a, b) => (a.memberType === "본인" ? -1 : 1))
+                    .map((m) => {
+                      const pct = memberTotal > 0 ? (m.total / memberTotal) * 100 : 0;
+                      return (
+                        <div
+                          key={m.memberType}
+                          className={m.memberType === "본인" ? "bg-blue-500" : "bg-purple-500"}
+                          style={{ width: `${pct}%` }}
+                        />
+                      );
+                    })}
+                </div>
+                {/* 범례 */}
+                <div className="flex items-center justify-between mt-3 text-sm">
+                  {data.memberBreakdown
+                    .sort((a, b) => (a.memberType === "본인" ? -1 : 1))
+                    .map((m) => {
+                      const pct = memberTotal > 0 ? ((m.total / memberTotal) * 100).toFixed(0) : "0";
+                      const isOwn = m.memberType === "본인";
+                      return (
+                        <div
+                          key={m.memberType}
+                          className={`flex items-center gap-2 ${isOwn ? "" : "flex-row-reverse"}`}
+                        >
+                          <span
+                            className={`w-2.5 h-2.5 rounded-full ${
+                              isOwn ? "bg-blue-500" : "bg-purple-500"
+                            }`}
+                          />
+                          <span className="text-gray-400">{m.memberType}</span>
+                          <span className="text-white font-medium">{formatKRW(m.total)}</span>
+                          <span className="text-gray-500">{pct}%</span>
+                        </div>
+                      );
+                    })}
+                </div>
+              </section>
+            )}
+
+            {/* 4. 인사이트 한 줄 */}
+            {(() => {
+              const insight = generateInsight(
+                data.categoryBreakdown,
+                data.prevCategoryBreakdown,
+                data.changeRate
+              );
+              if (!insight) return null;
+              const isPositive = insight.includes("절약") || insight.includes("잘하고");
+              return (
+                <div
+                  className={`rounded-2xl px-8 py-4 mb-8 flex items-center gap-4 ${
+                    isPositive
+                      ? "bg-green-500/10 border border-green-500/20"
+                      : "bg-yellow-500/10 border border-yellow-500/20"
+                  }`}
+                >
+                  <span className="text-lg">{isPositive ? "🎉" : "💡"}</span>
+                  <span className={`text-sm ${isPositive ? "text-green-400" : "text-yellow-300"}`}>
+                    {insight}
+                  </span>
+                </div>
+              );
+            })()}
+
+            {/* 5. 카테고리별 지출 — 도넛 차트 + 범례 (하나로 통합) */}
+            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-10">
+              <h2 className="text-lg font-semibold mb-6 text-white">카테고리별 지출</h2>
+              {pieData.length > 0 ? (
+                <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
+                  {/* 도넛 차트 */}
+                  <div className="shrink-0 w-[240px] h-[240px]">
+                    <ResponsiveContainer width="100%" height="100%">
+                      <PieChart>
+                        <Pie
+                          data={pieData}
+                          dataKey="total"
+                          nameKey="category"
+                          cx="50%"
+                          cy="50%"
+                          innerRadius={65}
+                          outerRadius={110}
+                          paddingAngle={1}
+                          strokeWidth={0}
+                        >
+                          {pieData.map((_, index) => (
+                            <Cell
+                              key={`cell-${index}`}
+                              fill={COLORS[index % COLORS.length]}
+                            />
+                          ))}
+                        </Pie>
+                        <Tooltip
+                          formatter={tooltipFormatter}
+                          contentStyle={{
+                            backgroundColor: "#111827",
+                            border: "1px solid #1f2937",
+                            borderRadius: "8px",
+                            color: "#fff",
+                          }}
+                        />
+                      </PieChart>
+                    </ResponsiveContainer>
+                  </div>
+                  {/* 범례 — 카테고리 + 프로그레스 바 + 비율 + 금액 */}
+                  <div className="flex-1 w-full space-y-3">
+                    {pieData.map((cat, i) => {
+                      const pct = pieTotal > 0 ? ((cat.total / pieTotal) * 100).toFixed(1) : "0";
+                      const widthPct = pieTotal > 0 ? (cat.total / pieData[0].total) * 100 : 0;
+                      return (
+                        <div key={cat.category} className="flex items-center gap-3">
+                          <span
+                            className="w-3 h-3 rounded-full shrink-0"
+                            style={{ backgroundColor: COLORS[i % COLORS.length] }}
+                          />
+                          <span className="text-sm text-gray-300 w-20 shrink-0">
+                            {cat.category}
+                          </span>
+                          <div className="flex-1 bg-gray-800 rounded-full h-2 min-w-0">
+                            <div
+                              className="h-2 rounded-full"
+                              style={{
+                                width: `${widthPct}%`,
+                                backgroundColor: COLORS[i % COLORS.length],
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs text-gray-500 w-12 text-right shrink-0">
+                            {pct}%
+                          </span>
+                          <span className="text-sm font-mono text-white w-28 text-right shrink-0">
+                            {formatKRW(cat.total)}
+                          </span>
+                        </div>
+                      );
+                    })}
+                  </div>
+                </div>
+              ) : (
+                <div className="h-56 flex items-center justify-center text-gray-500">
+                  이번 달 지출 데이터가 없습니다.
+                </div>
+              )}
+            </div>
+          </>
         )}
       </div>
     </div>
   );
 }
-

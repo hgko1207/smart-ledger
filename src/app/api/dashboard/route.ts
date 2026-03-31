@@ -20,6 +20,7 @@ interface DashboardData {
   totalRefund: number;
   netExpense: number;
   categoryBreakdown: CategorySummary[];
+  prevCategoryBreakdown: CategorySummary[];
   memberBreakdown: MemberSummary[];
   previousMonthExpense: number;
   changeRate: number | null; // percent, null if no previous data
@@ -106,6 +107,21 @@ export async function GET(request: Request) {
         ? ((netExpense - previousMonthExpense) / previousMonthExpense) * 100
         : null;
 
+    // 4-1. 전월 카테고리별 합산 (인사이트용)
+    const prevCategoryRows = await db
+      .select({
+        category: transactions.category,
+        total: sql<number>`sum(case when ${transactions.amount} > 0 then ${transactions.amount} else 0 end)`,
+      })
+      .from(transactions)
+      .where(and(eq(transactions.year, prev.year), eq(transactions.month, prev.month)))
+      .groupBy(transactions.category);
+
+    const prevCategoryBreakdown: CategorySummary[] = prevCategoryRows.map((r) => ({
+      category: r.category,
+      total: Number(r.total),
+    }));
+
     // 5. 이번 달 수입
     const incomeRows = await db
       .select({
@@ -140,6 +156,7 @@ export async function GET(request: Request) {
       totalRefund,
       netExpense,
       categoryBreakdown,
+      prevCategoryBreakdown,
       memberBreakdown,
       previousMonthExpense,
       changeRate,
