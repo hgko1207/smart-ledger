@@ -267,7 +267,7 @@ export default function UploadPage() {
             <svg className="w-5 h-5 text-red-400 mt-0.5 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
             </svg>
-            <p className="text-red-300 text-sm">{error}</p>
+            <p className="text-red-500 dark:text-red-300 text-sm">{error}</p>
           </div>
         )}
 
@@ -278,13 +278,13 @@ export default function UploadPage() {
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
               <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                 <p className="text-xs text-gray-400 mb-1">명세서</p>
-                <p className="text-lg font-semibold text-white">
+                <p className="text-lg font-semibold text-gray-900 dark:text-white">
                   {statementInfo.year}년 {statementInfo.month}월
                 </p>
               </div>
               <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                 <p className="text-xs text-gray-400 mb-1">파싱된 거래</p>
-                <p className="text-lg font-semibold text-white">
+                <p className="text-lg font-semibold text-gray-900 dark:text-white">
                   {parsedTransactions.length}<span className="text-sm font-normal text-gray-400 ml-0.5">건</span>
                 </p>
               </div>
@@ -309,7 +309,7 @@ export default function UploadPage() {
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
                 </svg>
                 <div>
-                  <p className="text-yellow-300 font-medium text-sm">
+                  <p className="text-yellow-600 dark:text-yellow-300 font-medium text-sm">
                     중복 후보 {duplicates.length}건이 발견되었습니다
                   </p>
                   <p className="text-yellow-400/70 text-xs mt-1">
@@ -324,7 +324,7 @@ export default function UploadPage() {
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-800/50">
+                    <tr className="bg-gray-100 dark:bg-gray-800/50">
                       <th className="text-left py-3 px-3 w-10">
                         <span className="sr-only">제외</span>
                       </th>
@@ -345,10 +345,10 @@ export default function UploadPage() {
                       return (
                         <tr
                           key={`${tx.date}-${tx.description}-${tx.amount}-${i}`}
-                          className={`border-b border-gray-800 transition-colors ${
+                          className={`border-b border-gray-200 dark:border-gray-800 transition-colors ${
                             isExcluded
                               ? "opacity-40"
-                              : "hover:bg-gray-800/30"
+                              : "hover:bg-gray-100 dark:hover:bg-gray-800/30"
                           }`}
                         >
                           <td className="py-2.5 px-3">
@@ -360,10 +360,10 @@ export default function UploadPage() {
                               className="rounded border-gray-600"
                             />
                           </td>
-                          <td className="py-2.5 px-3 whitespace-nowrap text-gray-300">
+                          <td className="py-2.5 px-3 whitespace-nowrap text-gray-600 dark:text-gray-300">
                             {tx.date}
                           </td>
-                          <td className="py-2.5 px-3 max-w-48 truncate text-white">
+                          <td className="py-2.5 px-3 max-w-48 truncate text-gray-900 dark:text-white">
                             {tx.description}
                             {tx.foreignCurrency && (
                               <span className="ml-1 text-xs text-blue-400">
@@ -375,14 +375,14 @@ export default function UploadPage() {
                             className={`py-2.5 px-3 text-right whitespace-nowrap font-mono ${
                               tx.amount < 0
                                 ? "text-green-400"
-                                : "text-white"
+                                : "text-gray-900 dark:text-white"
                             }`}
                           >
                             {tx.amount < 0 ? "-" : ""}
                             {Math.abs(tx.amount).toLocaleString("ko-KR")}원
                           </td>
                           <td className="py-2.5 px-3">
-                            <span className="inline-block px-2 py-0.5 bg-gray-800 border border-gray-700 rounded text-xs text-gray-300">
+                            <span className="inline-block px-2 py-0.5 bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded text-xs text-gray-600 dark:text-gray-300">
                               {tx.category}
                             </span>
                           </td>
@@ -428,7 +428,7 @@ export default function UploadPage() {
               <button
                 onClick={handleReset}
                 aria-label="다시 업로드"
-                className="px-6 py-3 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-300 font-medium rounded-lg transition-colors"
+                className="px-6 py-3 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors"
               >
                 다시 업로드
               </button>
@@ -443,7 +443,7 @@ export default function UploadPage() {
               <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
               <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
             </svg>
-            <p className="text-lg text-gray-300">거래 내역을 저장하고 있습니다...</p>
+            <p className="text-lg text-gray-600 dark:text-gray-300">거래 내역을 저장하고 있습니다...</p>
           </div>
         )}
 
@@ -471,7 +471,7 @@ export default function UploadPage() {
               </button>
               <a
                 href="/"
-                className="px-6 py-3 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-300 font-medium rounded-lg transition-colors inline-block"
+                className="px-6 py-3 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-700 dark:text-gray-300 font-medium rounded-lg transition-colors inline-block"
               >
                 대시보드로 이동
               </a>
@@ -486,21 +486,21 @@ export default function UploadPage() {
               <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3">
                 <span className="text-blue-400 font-bold text-sm">1</span>
               </div>
-              <h3 className="text-sm font-medium text-white mb-1">파일 선택</h3>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">파일 선택</h3>
               <p className="text-xs text-gray-400">현대카드 엑셀 명세서(.xls)를 드래그하거나 클릭하여 업로드합니다</p>
             </div>
             <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
               <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3">
                 <span className="text-blue-400 font-bold text-sm">2</span>
               </div>
-              <h3 className="text-sm font-medium text-white mb-1">자동 분석</h3>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">자동 분석</h3>
               <p className="text-xs text-gray-400">거래 내역이 자동으로 파싱되고 카테고리가 분류됩니다</p>
             </div>
             <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
               <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3">
                 <span className="text-blue-400 font-bold text-sm">3</span>
               </div>
-              <h3 className="text-sm font-medium text-white mb-1">확인 후 저장</h3>
+              <h3 className="text-sm font-medium text-gray-900 dark:text-white mb-1">확인 후 저장</h3>
               <p className="text-xs text-gray-400">중복 항목을 검토하고 확인 후 데이터베이스에 저장합니다</p>
             </div>
           </div>

@@ -225,7 +225,7 @@ export default function DashboardPage() {
           <p className="text-red-400 mb-4">{error}</p>
           <button
             onClick={() => void fetchData()}
-            className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-800 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
           >
             다시 시도
           </button>
@@ -314,7 +314,7 @@ export default function DashboardPage() {
                     {data.changeRate.toFixed(1)}%
                   </span>
                 ) : (
-                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-800 text-gray-500">
+                  <span className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium bg-gray-200 dark:bg-gray-800 text-gray-500">
                     전월 데이터 없음
                   </span>
                 )}
@@ -347,7 +347,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-400">수입 대비 지출</p>
-                    <p className="text-xl font-bold text-white">
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">
                       {data.expenseToIncomeRatio !== null
                         ? `${data.expenseToIncomeRatio.toFixed(1)}%`
                         : "---"}
@@ -367,7 +367,7 @@ export default function DashboardPage() {
                   </div>
                   <div>
                     <p className="text-xs text-gray-400">저축률</p>
-                    <p className="text-xl font-bold text-white">
+                    <p className="text-xl font-bold text-gray-900 dark:text-white">
                       {data.savingsRate !== null
                         ? `${data.savingsRate.toFixed(1)}%`
                         : "---"}
@@ -388,7 +388,7 @@ export default function DashboardPage() {
                   <p className="text-xs text-gray-400">진행 중 할부</p>
                   {installments && installments.activeCount > 0 ? (
                     <>
-                      <p className="text-xl font-bold text-white">
+                      <p className="text-xl font-bold text-gray-900 dark:text-white">
                         {installments.activeCount}건
                       </p>
                       <p className="text-xs text-gray-500">
@@ -445,7 +445,7 @@ export default function DashboardPage() {
                             }`}
                           />
                           <span className="text-gray-400">{m.memberType}</span>
-                          <span className="text-white font-medium">{formatKRW(m.total)}</span>
+                          <span className="text-gray-900 dark:text-white font-medium">{formatKRW(m.total)}</span>
                           <span className="text-gray-500">{pct}%</span>
                         </div>
                       );
@@ -529,7 +529,7 @@ export default function DashboardPage() {
                             className="w-3 h-3 rounded-full shrink-0"
                             style={{ backgroundColor: COLORS[i % COLORS.length] }}
                           />
-                          <span className="text-sm text-gray-300 w-20 shrink-0">
+                          <span className="text-sm text-gray-600 dark:text-gray-300 w-20 shrink-0">
                             {cat.category}
                           </span>
                           <div className="flex-1 bg-gray-200 dark:bg-gray-800 rounded-full h-2 min-w-0">
@@ -544,7 +544,7 @@ export default function DashboardPage() {
                           <span className="text-xs text-gray-500 w-12 text-right shrink-0">
                             {pct}%
                           </span>
-                          <span className="text-sm font-mono text-white w-28 text-right shrink-0">
+                          <span className="text-sm font-mono text-gray-900 dark:text-white w-28 text-right shrink-0">
                             {formatKRW(cat.total)}
                           </span>
                         </div>

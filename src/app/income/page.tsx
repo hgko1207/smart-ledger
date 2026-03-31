@@ -383,7 +383,7 @@ export default function IncomePage() {
         {loading ? (
           <div className="flex items-center justify-center py-20">
             <div className="flex flex-col items-center gap-3">
-              <div className="w-8 h-8 border-2 border-gray-700 border-t-blue-500 rounded-full animate-spin" />
+              <div className="w-8 h-8 border-2 border-gray-300 dark:border-gray-700 border-t-blue-500 rounded-full animate-spin" />
               <p className="text-gray-400 text-sm">데이터를 불러오는 중...</p>
             </div>
           </div>

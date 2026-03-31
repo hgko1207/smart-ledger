@@ -221,7 +221,7 @@ export default function AnalyticsPage() {
           <p className="text-red-400 mb-4">{error}</p>
           <button
             onClick={() => void fetchData()}
-            className="px-4 py-2 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors"
+            className="px-4 py-2 bg-gray-200 dark:bg-gray-800 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
             aria-label="다시 시도"
           >
             다시 시도
@@ -307,7 +307,7 @@ export default function AnalyticsPage() {
                     onClick={() => setShowAllInsights(!showAllInsights)}
                     aria-expanded={showAllInsights}
                     aria-label={showAllInsights ? "인사이트 접기" : "인사이트 더보기"}
-                    className="text-sm text-gray-400 hover:text-white transition-colors px-2 py-1.5 mt-2"
+                    className="text-sm text-gray-400 hover:text-gray-900 dark:hover:text-white transition-colors px-2 py-1.5 mt-2"
                   >
                     {showAllInsights ? "접기" : `+${data.insights.length - 3}개 더보기`}
                   </button>
@@ -362,11 +362,11 @@ export default function AnalyticsPage() {
                               <span className="text-sm font-bold text-gray-500 shrink-0 w-6 text-center">
                                 {idx + 1}
                               </span>
-                              <span className="text-sm text-white truncate">{merchant.description}</span>
+                              <span className="text-sm text-gray-900 dark:text-white truncate">{merchant.description}</span>
                             </div>
                             <div className="flex items-center gap-3 shrink-0">
                               <span className="text-xs text-gray-500">{merchant.count}건</span>
-                              <span className="text-sm font-mono text-white">{formatKRW(merchant.total)}</span>
+                              <span className="text-sm font-mono text-gray-900 dark:text-white">{formatKRW(merchant.total)}</span>
                             </div>
                           </div>
                           <div className="ml-8 bg-gray-200 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
@@ -471,7 +471,7 @@ export default function AnalyticsPage() {
                             }`}
                           />
                           <span className="text-gray-400">{m.memberType}</span>
-                          <span className="text-white font-medium">{formatKRW(m.total)}</span>
+                          <span className="text-gray-900 dark:text-white font-medium">{formatKRW(m.total)}</span>
                           <span className="text-gray-500">{pct}%</span>
                         </div>
                       );
@@ -496,7 +496,7 @@ export default function AnalyticsPage() {
                   </div>
                   <a
                     href={`/installments?year=${selectedYear}&month=${selectedMonth}`}
-                    className="px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-xl text-sm text-white transition-colors shrink-0"
+                    className="px-4 py-2 bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700 rounded-xl text-sm text-gray-900 dark:text-white transition-colors shrink-0"
                     aria-label="할부 상세 페이지로 이동"
                   >
                     상세 보기

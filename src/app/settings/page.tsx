@@ -267,7 +267,7 @@ export default function SettingsPage() {
               <button
                 onClick={() => void fetchRules()}
                 aria-label="다시 시도"
-                className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 transition-colors text-sm text-gray-300"
+                className="px-4 py-2 bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors text-sm text-gray-700 dark:text-gray-300"
               >
                 다시 시도
               </button>
@@ -293,9 +293,9 @@ export default function SettingsPage() {
                 </thead>
                 <tbody>
                   {rules.map((rule) => (
-                    <tr key={rule.id} className="border-b border-gray-800 hover:bg-gray-800/30 transition-colors">
+                    <tr key={rule.id} className="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800/30 transition-colors">
                       <td className="px-4 py-3 text-sm">
-                        <code className="bg-gray-800 border border-gray-700 px-2 py-0.5 rounded text-yellow-300 text-xs">{rule.pattern}</code>
+                        <code className="bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-2 py-0.5 rounded text-yellow-600 dark:text-yellow-300 text-xs">{rule.pattern}</code>
                       </td>
                       <td className="px-4 py-3 text-sm">
                         <span className="inline-block px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 text-xs border border-blue-500/20">
@@ -341,7 +341,7 @@ export default function SettingsPage() {
                 key={key}
                 className="bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3"
               >
-                <span className="text-sm text-gray-300">{label}</span>
+                <span className="text-sm text-gray-700 dark:text-gray-300">{label}</span>
                 <span className="text-gray-500 ml-2 text-xs">({key})</span>
               </div>
             ))}
@@ -351,7 +351,7 @@ export default function SettingsPage() {
         {/* 비밀번호 변경 */}
         <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-4">
-            <div className="w-9 h-9 rounded-lg bg-gray-800 flex items-center justify-center">
+            <div className="w-9 h-9 rounded-lg bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z" />
               </svg>

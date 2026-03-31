@@ -36,7 +36,7 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-950">
+    <div className="min-h-screen flex items-center justify-center bg-gray-100 dark:bg-gray-950">
       <div className="w-full max-w-sm p-8 bg-gray-100 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800">
         {/* 로고 영역 */}
         <div className="flex justify-center mb-6">
@@ -47,7 +47,7 @@ export default function LoginPage() {
           </div>
         </div>
 
-        <h1 className="text-2xl font-bold text-white text-center mb-1">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-white text-center mb-1">
           Smart Ledger
         </h1>
         <p className="text-gray-400 text-sm text-center mb-8">
@@ -58,7 +58,7 @@ export default function LoginPage() {
           <div>
             <label
               htmlFor="password"
-              className="block text-sm font-medium text-gray-300 mb-1.5"
+              className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1.5"
             >
               비밀번호 <span className="text-red-400">*</span>
             </label>
@@ -70,7 +70,7 @@ export default function LoginPage() {
               placeholder="비밀번호를 입력하세요"
               required
               aria-label="비밀번호 입력"
-              className="w-full px-4 py-3 bg-gray-800 border border-gray-700 rounded-lg text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+              className="w-full px-4 py-3 bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg text-gray-900 dark:text-white placeholder-gray-500 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
             />
           </div>
 
@@ -79,7 +79,7 @@ export default function LoginPage() {
               <svg className="w-4 h-4 text-red-400 shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
               </svg>
-              <p className="text-red-300 text-sm">{error}</p>
+              <p className="text-red-500 dark:text-red-300 text-sm">{error}</p>
             </div>
           )}
 

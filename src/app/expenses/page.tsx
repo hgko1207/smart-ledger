@@ -269,7 +269,7 @@ export default function ExpensesPage() {
                   value={searchText}
                   onChange={(e) => setSearchText(e.target.value)}
                   placeholder="가맹점명 입력..."
-                  className="w-full bg-gray-800 border border-gray-700 rounded-lg pl-9 pr-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+                  className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg pl-9 pr-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
                 />
               </div>
             </div>
@@ -278,10 +278,10 @@ export default function ExpensesPage() {
           {/* 요약 바 */}
           <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800">
             <span className="text-sm text-gray-400">
-              총 <span className="text-white font-medium">{filteredTransactions.length}</span>건
+              총 <span className="text-gray-900 dark:text-white font-medium">{filteredTransactions.length}</span>건
             </span>
             <span className="text-sm">
-              합계: <span className="text-white font-semibold font-mono">{formatKRW(totalAmount)}</span>
+              합계: <span className="text-gray-900 dark:text-white font-semibold font-mono">{formatKRW(totalAmount)}</span>
             </span>
           </div>
         </div>
@@ -305,7 +305,7 @@ export default function ExpensesPage() {
             <p className="text-red-400 mb-4">{error}</p>
             <button
               onClick={() => void fetchData()}
-              className="px-4 py-2 bg-gray-800 border border-gray-700 rounded-lg hover:bg-gray-700 text-sm text-gray-300 transition-colors"
+              className="px-4 py-2 bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg hover:bg-gray-300 dark:hover:bg-gray-700 text-sm text-gray-700 dark:text-gray-300 transition-colors"
             >
               다시 시도
             </button>
@@ -335,16 +335,16 @@ export default function ExpensesPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-100 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
-                      <th scope="col" className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 cursor-pointer hover:text-gray-200 select-none" onClick={() => handleSort("date")}>
+                      <th scope="col" className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 select-none" onClick={() => handleSort("date")}>
                         날짜 {sortKey === "date" ? (sortDir === "desc" ? "↓" : "↑") : ""}
                       </th>
-                      <th scope="col" className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 cursor-pointer hover:text-gray-200 select-none" onClick={() => handleSort("description")}>
+                      <th scope="col" className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 select-none" onClick={() => handleSort("description")}>
                         가맹점 {sortKey === "description" ? (sortDir === "desc" ? "↓" : "↑") : ""}
                       </th>
-                      <th scope="col" className="text-right text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 cursor-pointer hover:text-gray-200 select-none" onClick={() => handleSort("amount")}>
+                      <th scope="col" className="text-right text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 select-none" onClick={() => handleSort("amount")}>
                         금액 {sortKey === "amount" ? (sortDir === "desc" ? "↓" : "↑") : ""}
                       </th>
-                      <th scope="col" className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 cursor-pointer hover:text-gray-200 select-none" onClick={() => handleSort("category")}>
+                      <th scope="col" className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 select-none" onClick={() => handleSort("category")}>
                         카테고리 {sortKey === "category" ? (sortDir === "desc" ? "↓" : "↑") : ""}
                       </th>
                       <th scope="col" className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5">카드</th>
@@ -354,20 +354,20 @@ export default function ExpensesPage() {
                       </th>
                     </tr>
                   </thead>
-                  <tbody className="divide-y divide-gray-800/50">
+                  <tbody className="divide-y divide-gray-200 dark:divide-gray-800/50">
                     {filteredTransactions.map((tx) => (
                       <tr
                         key={tx.id}
-                        className="group hover:bg-gray-800/30 transition-colors"
+                        className="group hover:bg-gray-100 dark:hover:bg-gray-800/30 transition-colors"
                       >
                         <td className="px-5 py-3.5 text-sm text-gray-400 whitespace-nowrap">
                           {formatDate(tx.date)}
                         </td>
-                        <td className="px-5 py-3.5 text-sm text-gray-200 max-w-[240px] truncate">
+                        <td className="px-5 py-3.5 text-sm text-gray-700 dark:text-gray-200 max-w-[240px] truncate">
                           {tx.description}
                         </td>
                         <td className={`px-5 py-3.5 text-sm text-right font-mono whitespace-nowrap ${
-                          tx.amount < 0 ? "text-green-400" : tx.amount >= 100000 ? "text-white font-semibold" : "text-gray-200"
+                          tx.amount < 0 ? "text-green-400" : tx.amount >= 100000 ? "text-gray-900 dark:text-white font-semibold" : "text-gray-700 dark:text-gray-200"
                         }`}>
                           {tx.amount < 0 ? "-" : ""}{formatKRW(Math.abs(tx.amount))}
                         </td>
@@ -379,7 +379,7 @@ export default function ExpensesPage() {
                               onChange={(e) => void handleCategoryChange(tx.id, e.target.value)}
                               onBlur={() => setEditingId(null)}
                               autoFocus
-                              className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                             >
                               {CATEGORIES.map((cat) => (
                                 <option key={cat} value={cat}>{cat}</option>
@@ -388,11 +388,11 @@ export default function ExpensesPage() {
                           ) : (
                             <button
                               onClick={() => setEditingId(tx.id)}
-                              className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg hover:bg-gray-800 text-sm transition-colors"
+                              className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 text-sm transition-colors"
                               title="클릭하여 카테고리 변경"
                             >
                               <span className={`w-2 h-2 rounded-full ${CATEGORY_COLORS[tx.category] ?? "bg-gray-400"}`} />
-                              <span className="text-gray-300">{tx.category}</span>
+                              <span className="text-gray-600 dark:text-gray-300">{tx.category}</span>
                               <svg className="w-3 h-3 text-gray-500 group-hover:text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                               </svg>
@@ -446,11 +446,11 @@ export default function ExpensesPage() {
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-200 truncate">{tx.description}</p>
+                      <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{tx.description}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{formatDate(tx.date)} · {tx.cardName}</p>
                     </div>
                     <p className={`text-sm font-mono font-medium ml-3 whitespace-nowrap ${
-                      tx.amount < 0 ? "text-green-400" : "text-white"
+                      tx.amount < 0 ? "text-green-400" : "text-gray-900 dark:text-white"
                     }`}>
                       {tx.amount < 0 ? "-" : ""}{formatKRW(Math.abs(tx.amount))}
                     </p>
@@ -464,7 +464,7 @@ export default function ExpensesPage() {
                           onChange={(e) => void handleCategoryChange(tx.id, e.target.value)}
                           onBlur={() => setEditingId(null)}
                           autoFocus
-                          className="bg-gray-700 border border-gray-600 rounded px-2 py-1 text-xs text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          className="bg-white dark:bg-gray-700 border border-gray-300 dark:border-gray-600 rounded px-2 py-1 text-xs text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
                         >
                           {CATEGORIES.map((cat) => (
                             <option key={cat} value={cat}>{cat}</option>
@@ -473,7 +473,7 @@ export default function ExpensesPage() {
                       ) : (
                         <button
                           onClick={() => setEditingId(tx.id)}
-                          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-gray-800/50 text-xs text-gray-300 transition-colors"
+                          className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-gray-200 dark:bg-gray-800/50 text-xs text-gray-600 dark:text-gray-300 transition-colors"
                           title="클릭하여 카테고리 변경"
                         >
                           <span className={`w-1.5 h-1.5 rounded-full ${CATEGORY_COLORS[tx.category] ?? "bg-gray-400"}`} />
