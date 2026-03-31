@@ -191,12 +191,12 @@ export default function ExpensesPage() {
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-white">지출 상세</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">지출 상세</h1>
             <p className="text-gray-400 mt-1">전체 거래 내역 조회 및 관리</p>
           </div>
           <a
             href="/"
-            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-800 hover:bg-gray-700 border border-gray-700 rounded-lg text-sm text-gray-300 transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2 bg-gray-100 dark:bg-gray-800 hover:bg-gray-200 dark:hover:bg-gray-700 border border-gray-300 dark:border-gray-700 rounded-lg text-sm text-gray-600 dark:text-gray-300 transition-colors"
           >
             <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
@@ -206,7 +206,7 @@ export default function ExpensesPage() {
         </div>
 
         {/* 필터 영역 */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+        <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-6">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
             {/* 월 선택 */}
             <div>
@@ -215,7 +215,7 @@ export default function ExpensesPage() {
                 aria-label="기간 선택"
                 value={`${selectedYear}-${selectedMonth}`}
                 onChange={handleMonthChange}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 {monthOptions.map((opt) => (
                   <option key={`${opt.year}-${opt.month}`} value={`${opt.year}-${opt.month}`}>
@@ -232,7 +232,7 @@ export default function ExpensesPage() {
                 aria-label="카테고리 필터"
                 value={categoryFilter}
                 onChange={(e) => setCategoryFilter(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">전체</option>
                 {CATEGORIES.map((cat) => (
@@ -248,7 +248,7 @@ export default function ExpensesPage() {
                 aria-label="본인/가족 구분 필터"
                 value={memberFilter}
                 onChange={(e) => setMemberFilter(e.target.value)}
-                className="w-full bg-gray-800 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                className="w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
               >
                 <option value="">전체</option>
                 <option value="본인">본인</option>
@@ -276,7 +276,7 @@ export default function ExpensesPage() {
           </div>
 
           {/* 요약 바 */}
-          <div className="flex items-center justify-between pt-4 border-t border-gray-800">
+          <div className="flex items-center justify-between pt-4 border-t border-gray-200 dark:border-gray-800">
             <span className="text-sm text-gray-400">
               총 <span className="text-white font-medium">{filteredTransactions.length}</span>건
             </span>
@@ -298,7 +298,7 @@ export default function ExpensesPage() {
             </div>
           </div>
         ) : error ? (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-16 text-center">
+          <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-16 text-center">
             <svg className="w-12 h-12 text-red-400/60 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-2.5L13.732 4.5c-.77-.833-2.694-.833-3.464 0L3.34 16.5c-.77.833.192 2.5 1.732 2.5z" />
             </svg>
@@ -311,7 +311,7 @@ export default function ExpensesPage() {
             </button>
           </div>
         ) : filteredTransactions.length === 0 ? (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-16 text-center">
+          <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-16 text-center">
             <svg className="w-16 h-16 text-gray-700 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2" />
             </svg>
@@ -330,11 +330,11 @@ export default function ExpensesPage() {
         ) : (
           <>
             {/* 데스크톱 테이블 */}
-            <div className="hidden md:block bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden">
+            <div className="hidden md:block bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden">
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
-                    <tr className="bg-gray-800/50 border-b border-gray-800">
+                    <tr className="bg-gray-100 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
                       <th scope="col" className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 cursor-pointer hover:text-gray-200 select-none" onClick={() => handleSort("date")}>
                         날짜 {sortKey === "date" ? (sortDir === "desc" ? "↓" : "↑") : ""}
                       </th>
@@ -442,7 +442,7 @@ export default function ExpensesPage() {
               {filteredTransactions.map((tx) => (
                 <div
                   key={tx.id}
-                  className="bg-gray-900 border border-gray-800 rounded-2xl p-4"
+                  className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-4"
                 >
                   <div className="flex items-start justify-between mb-3">
                     <div className="flex-1 min-w-0">

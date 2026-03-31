@@ -1,6 +1,7 @@
 "use client";
 
 import { usePathname } from "next/navigation";
+import { useState, useEffect, useCallback } from "react";
 import Link from "next/link";
 
 interface NavItem {
@@ -149,6 +150,50 @@ function SettingsIcon({ className }: { className?: string }) {
   );
 }
 
+function SunIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <circle cx="12" cy="12" r="5" />
+      <line x1="12" y1="1" x2="12" y2="3" />
+      <line x1="12" y1="21" x2="12" y2="23" />
+      <line x1="4.22" y1="4.22" x2="5.64" y2="5.64" />
+      <line x1="18.36" y1="18.36" x2="19.78" y2="19.78" />
+      <line x1="1" y1="12" x2="3" y2="12" />
+      <line x1="21" y1="12" x2="23" y2="12" />
+      <line x1="4.22" y1="19.78" x2="5.64" y2="18.36" />
+      <line x1="18.36" y1="5.64" x2="19.78" y2="4.22" />
+    </svg>
+  );
+}
+
+function MoonIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="20"
+      height="20"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z" />
+    </svg>
+  );
+}
+
 const navItems: NavItem[] = [
   { href: "/", label: "대시보드", icon: <HomeIcon className="w-5 h-5" /> },
   { href: "/expenses", label: "지출 상세", icon: <ListIcon className="w-5 h-5" /> },
@@ -169,6 +214,55 @@ function isActive(pathname: string, href: string): boolean {
 
 export default function Navigation() {
   const pathname = usePathname();
+  const [isDark, setIsDark] = useState(true);
+  const [subtitle, setSubtitle] = useState("가족 가계부");
+
+  const syncSubtitle = useCallback(() => {
+    try {
+      const stored = localStorage.getItem("smart-ledger-subtitle");
+      if (stored) setSubtitle(stored);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  useEffect(() => {
+    // Initialize theme state from DOM
+    const hasDark = document.documentElement.classList.contains("dark");
+    setIsDark(hasDark);
+
+    // Initialize subtitle from localStorage
+    syncSubtitle();
+
+    // Listen for subtitle changes from other tabs or custom events
+    function handleStorage(e: StorageEvent) {
+      if (e.key === "smart-ledger-subtitle" && e.newValue) {
+        setSubtitle(e.newValue);
+      }
+    }
+    function handleSubtitleChange() {
+      syncSubtitle();
+    }
+
+    window.addEventListener("storage", handleStorage);
+    window.addEventListener("smart-ledger-subtitle-changed", handleSubtitleChange);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("smart-ledger-subtitle-changed", handleSubtitleChange);
+    };
+  }, [syncSubtitle]);
+
+  function toggleTheme() {
+    const next = !isDark;
+    setIsDark(next);
+    if (next) {
+      document.documentElement.classList.add("dark");
+      localStorage.setItem("smart-ledger-theme", "dark");
+    } else {
+      document.documentElement.classList.remove("dark");
+      localStorage.setItem("smart-ledger-theme", "light");
+    }
+  }
 
   // 로그인 페이지에서는 네비게이션 숨김
   if (pathname === "/login") return null;
@@ -176,13 +270,13 @@ export default function Navigation() {
   return (
     <>
       {/* 데스크탑 사이드바 */}
-      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col bg-gray-950 border-r border-gray-800 z-40">
+      <aside className="hidden md:flex fixed left-0 top-0 bottom-0 w-60 flex-col bg-white dark:bg-gray-950 border-r border-gray-200 dark:border-gray-800 z-40">
         {/* 로고 */}
-        <div className="px-6 py-6 border-b border-gray-800">
-          <h1 className="text-xl font-bold text-white tracking-tight">
+        <div className="px-6 py-6 border-b border-gray-200 dark:border-gray-800">
+          <h1 className="text-xl font-bold text-gray-900 dark:text-white tracking-tight">
             Smart Ledger
           </h1>
-          <p className="text-xs text-gray-500 mt-1">가족 가계부</p>
+          <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">{subtitle}</p>
         </div>
 
         {/* 메뉴 */}
@@ -195,11 +289,11 @@ export default function Navigation() {
                 href={item.href}
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                   active
-                    ? "bg-blue-600/15 text-blue-400"
-                    : "text-gray-400 hover:text-white hover:bg-gray-800/60"
+                    ? "bg-blue-600 text-white"
+                    : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60"
                 }`}
               >
-                <span className={active ? "text-blue-400" : "text-gray-500"}>
+                <span className={active ? "text-white" : "text-gray-400 dark:text-gray-500"}>
                   {item.icon}
                 </span>
                 {item.label}
@@ -208,8 +302,8 @@ export default function Navigation() {
           })}
         </nav>
 
-        {/* 하단 메뉴 + 버전 */}
-        <div className="border-t border-gray-800">
+        {/* 하단 메뉴 + 테마 토글 */}
+        <div className="border-t border-gray-200 dark:border-gray-800">
           <div className="px-3 py-3 space-y-1">
             {bottomNavItems.map((item) => {
               const active = isActive(pathname, item.href);
@@ -219,11 +313,11 @@ export default function Navigation() {
                   href={item.href}
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors ${
                     active
-                      ? "bg-blue-600/15 text-blue-400"
-                      : "text-gray-400 hover:text-white hover:bg-gray-800/60"
+                      ? "bg-blue-600 text-white"
+                      : "text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60"
                   }`}
                 >
-                  <span className={active ? "text-blue-400" : "text-gray-500"}>
+                  <span className={active ? "text-white" : "text-gray-400 dark:text-gray-500"}>
                     {item.icon}
                   </span>
                   {item.label}
@@ -231,14 +325,26 @@ export default function Navigation() {
               );
             })}
           </div>
-          <div className="px-6 py-3">
-            <p className="text-xs text-gray-600">v1.0</p>
+          <div className="px-3 pb-3">
+            <button
+              onClick={toggleTheme}
+              aria-label={isDark ? "라이트 모드로 전환" : "다크 모드로 전환"}
+              className="flex items-center gap-3 w-full px-3 py-2.5 rounded-lg text-sm font-medium transition-colors text-gray-600 dark:text-gray-400 hover:text-gray-900 dark:hover:text-white hover:bg-gray-100 dark:hover:bg-gray-800/60"
+            >
+              <span className="text-gray-400 dark:text-gray-500">
+                {isDark ? <SunIcon className="w-5 h-5" /> : <MoonIcon className="w-5 h-5" />}
+              </span>
+              {isDark ? "라이트 모드" : "다크 모드"}
+            </button>
+          </div>
+          <div className="px-6 py-3 border-t border-gray-200 dark:border-gray-800">
+            <p className="text-xs text-gray-400 dark:text-gray-600">v1.0</p>
           </div>
         </div>
       </aside>
 
       {/* 모바일 하단 탭 바 */}
-      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-gray-950/95 backdrop-blur-md border-t border-gray-800 z-40 safe-area-bottom">
+      <nav className="md:hidden fixed bottom-0 left-0 right-0 bg-white/95 dark:bg-gray-950/95 backdrop-blur-md border-t border-gray-200 dark:border-gray-800 z-40 safe-area-bottom">
         <div className="flex items-center justify-around h-16">
           {[...navItems, ...bottomNavItems].map((item) => {
             const active = isActive(pathname, item.href);
@@ -247,7 +353,7 @@ export default function Navigation() {
                 key={item.href}
                 href={item.href}
                 className={`flex flex-col items-center gap-1 px-2 py-1.5 min-w-0 transition-colors ${
-                  active ? "text-blue-400" : "text-gray-500"
+                  active ? "text-blue-500" : "text-gray-400 dark:text-gray-500"
                 }`}
               >
                 {item.icon}

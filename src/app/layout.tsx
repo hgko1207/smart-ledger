@@ -27,8 +27,16 @@ export default function RootLayout({
     <html
       lang="ko"
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      suppressHydrationWarning
     >
-      <body className="min-h-full bg-gray-950 text-white" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('smart-ledger-theme');if(t==='dark'||(!t&&window.matchMedia('(prefers-color-scheme:dark)').matches)){document.documentElement.classList.add('dark')}else{document.documentElement.classList.remove('dark')}}catch(e){document.documentElement.classList.add('dark')}})()`,
+          }}
+        />
+      </head>
+      <body className="min-h-full bg-white dark:bg-gray-950 text-gray-900 dark:text-white" suppressHydrationWarning>
         <Navigation />
         {/* 데스크탑: 사이드바 너비만큼 왼쪽 패딩 / 모바일: 하단 탭 바 높이만큼 패딩 */}
         <main className="md:pl-60 pb-20 md:pb-0 min-h-screen">

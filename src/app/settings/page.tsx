@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import type { CategoryRule } from "@/db/schema";
 
 const INCOME_SOURCE_LABELS: Record<string, string> = {
@@ -17,6 +17,30 @@ export default function SettingsPage() {
   const [rules, setRules] = useState<CategoryRule[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+
+  // 앱 이름(부제) 설정
+  const [subtitleInput, setSubtitleInput] = useState("가족 가계부");
+  const [subtitleSaved, setSubtitleSaved] = useState(false);
+  const subtitleTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem("smart-ledger-subtitle");
+      if (stored) setSubtitleInput(stored);
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  function handleSubtitleSave() {
+    const value = subtitleInput.trim() || "가족 가계부";
+    localStorage.setItem("smart-ledger-subtitle", value);
+    setSubtitleInput(value);
+    window.dispatchEvent(new CustomEvent("smart-ledger-subtitle-changed"));
+    setSubtitleSaved(true);
+    if (subtitleTimeoutRef.current) clearTimeout(subtitleTimeoutRef.current);
+    subtitleTimeoutRef.current = setTimeout(() => setSubtitleSaved(false), 2000);
+  }
 
   // 새 규칙 폼
   const [newPattern, setNewPattern] = useState("");
@@ -103,12 +127,51 @@ export default function SettingsPage() {
       <div className="max-w-4xl mx-auto px-4 py-8">
         {/* 헤더 */}
         <div className="mb-10">
-          <h1 className="text-2xl font-bold text-white">설정</h1>
-          <p className="text-gray-400 text-sm mt-1">카테고리 규칙 및 가계부 환경을 관리합니다</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">설정</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">카테고리 규칙 및 가계부 환경을 관리합니다</p>
+        </div>
+
+        {/* 앱 이름 설정 */}
+        <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-lg bg-purple-500/10 flex items-center justify-center">
+              <svg className="w-5 h-5 text-purple-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">앱 이름 설정</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">사이드바에 표시되는 부제를 변경합니다</p>
+            </div>
+          </div>
+          <div className="flex items-end gap-3">
+            <div className="flex-1 max-w-xs">
+              <label htmlFor="subtitle-input" className="block text-xs font-medium text-gray-500 dark:text-gray-400 mb-1.5">
+                부제 (최대 20자)
+              </label>
+              <input
+                id="subtitle-input"
+                type="text"
+                value={subtitleInput}
+                onChange={(e) => setSubtitleInput(e.target.value.slice(0, 20))}
+                maxLength={20}
+                placeholder="가족 가계부"
+                aria-label="앱 부제 입력"
+                className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500"
+              />
+            </div>
+            <button
+              onClick={handleSubtitleSave}
+              aria-label="부제 저장"
+              className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 rounded-lg text-sm font-medium transition-colors text-white"
+            >
+              {subtitleSaved ? "저장됨" : "저장"}
+            </button>
+          </div>
         </div>
 
         {/* 지출 카테고리 관리 */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+        <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-9 h-9 rounded-lg bg-blue-500/10 flex items-center justify-center">
               <svg className="w-5 h-5 text-blue-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -116,16 +179,16 @@ export default function SettingsPage() {
               </svg>
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">지출 카테고리 규칙</h2>
-              <p className="text-xs text-gray-400 mt-0.5">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">지출 카테고리 규칙</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">
                 가맹점명에 패턴이 포함되면 해당 카테고리로 자동 분류됩니다
               </p>
             </div>
           </div>
 
           {/* 새 규칙 추가 폼 */}
-          <form onSubmit={(e) => void handleAddRule(e)} className="bg-gray-800 border border-gray-700 rounded-xl p-4 mb-6">
-            <h3 className="text-sm font-medium text-gray-300 mb-3">새 규칙 추가</h3>
+          <form onSubmit={(e) => void handleAddRule(e)} className="bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-4 mb-6">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">새 규칙 추가</h3>
             <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
               <div>
                 <label htmlFor="new-pattern" className="block text-xs font-medium text-gray-400 mb-1.5">
@@ -139,7 +202,7 @@ export default function SettingsPage() {
                   placeholder="스타벅스"
                   required
                   aria-label="카테고리 규칙 패턴 입력"
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+                  className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500"
                 />
               </div>
               <div>
@@ -154,7 +217,7 @@ export default function SettingsPage() {
                   placeholder="카페"
                   required
                   aria-label="카테고리명 입력"
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+                  className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500"
                 />
               </div>
               <div>
@@ -168,7 +231,7 @@ export default function SettingsPage() {
                   onChange={(e) => setNewPriority(e.target.value)}
                   placeholder="0"
                   aria-label="우선순위 입력"
-                  className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-500"
+                  className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500"
                 />
               </div>
               <div className="flex items-end">
@@ -221,7 +284,7 @@ export default function SettingsPage() {
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
-                  <tr className="bg-gray-800/50">
+                  <tr className="bg-gray-100 dark:bg-gray-800/50">
                     <th className="text-left text-xs text-gray-400 font-medium px-4 py-3 rounded-l-lg">패턴</th>
                     <th className="text-left text-xs text-gray-400 font-medium px-4 py-3">카테고리</th>
                     <th className="text-center text-xs text-gray-400 font-medium px-4 py-3">우선순위</th>
@@ -260,7 +323,7 @@ export default function SettingsPage() {
         </div>
 
         {/* 수입 카테고리 */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-6">
+        <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-9 h-9 rounded-lg bg-green-500/10 flex items-center justify-center">
               <svg className="w-5 h-5 text-green-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -268,7 +331,7 @@ export default function SettingsPage() {
               </svg>
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">수입 카테고리</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">수입 카테고리</h2>
               <p className="text-xs text-gray-400 mt-0.5">현재 사용 가능한 수입 카테고리 목록입니다 (고정 목록)</p>
             </div>
           </div>
@@ -276,7 +339,7 @@ export default function SettingsPage() {
             {Object.entries(INCOME_SOURCE_LABELS).map(([key, label]) => (
               <div
                 key={key}
-                className="bg-gray-800 border border-gray-700 rounded-lg px-4 py-3"
+                className="bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-lg px-4 py-3"
               >
                 <span className="text-sm text-gray-300">{label}</span>
                 <span className="text-gray-500 ml-2 text-xs">({key})</span>
@@ -286,7 +349,7 @@ export default function SettingsPage() {
         </div>
 
         {/* 비밀번호 변경 */}
-        <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+        <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
           <div className="flex items-center gap-3 mb-4">
             <div className="w-9 h-9 rounded-lg bg-gray-800 flex items-center justify-center">
               <svg className="w-5 h-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -294,15 +357,15 @@ export default function SettingsPage() {
               </svg>
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-white">비밀번호 변경</h2>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">비밀번호 변경</h2>
               <p className="text-xs text-gray-400 mt-0.5">접근 비밀번호 관리</p>
             </div>
           </div>
-          <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 text-center">
+          <div className="bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-6 text-center">
             <svg className="w-10 h-10 text-gray-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
-            <p className="text-gray-400 text-sm font-medium">향후 구현 예정입니다</p>
+            <p className="text-gray-500 dark:text-gray-400 text-sm font-medium">향후 구현 예정입니다</p>
             <p className="text-gray-500 text-xs mt-1.5">
               현재 비밀번호는 환경변수(LEDGER_PASSWORD_HASH)로 관리됩니다
             </p>

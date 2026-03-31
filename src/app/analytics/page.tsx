@@ -234,12 +234,12 @@ export default function AnalyticsPage() {
   if (!data) return null;
 
   return (
-    <div className="bg-gray-950 min-h-screen">
+    <div className="bg-white dark:bg-gray-950 min-h-screen">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* 헤더 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-white">지출 분석</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">지출 분석</h1>
             <p className="text-gray-400 mt-1">지출 패턴 분석 및 인사이트</p>
           </div>
           <div className="flex items-center gap-3">
@@ -247,7 +247,7 @@ export default function AnalyticsPage() {
               value={`${selectedYear}-${selectedMonth}`}
               onChange={handleMonthChange}
               aria-label="분석 월 선택"
-              className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl px-4 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {monthOptions.map((opt) => (
                 <option key={`${opt.year}-${opt.month}`} value={`${opt.year}-${opt.month}`}>
@@ -257,7 +257,7 @@ export default function AnalyticsPage() {
             </select>
             <a
               href="/"
-              className="px-4 py-2.5 bg-gray-900 border border-gray-800 hover:bg-gray-800 rounded-xl text-sm text-white transition-colors"
+              className="px-4 py-2.5 bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-xl text-sm text-gray-900 dark:text-white transition-colors"
               aria-label="대시보드로 이동"
             >
               대시보드
@@ -267,7 +267,7 @@ export default function AnalyticsPage() {
 
         {/* 빈 상태 */}
         {isEmpty && (
-          <div className="bg-gray-900 border border-gray-800 rounded-2xl p-16 text-center">
+          <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-16 text-center">
             <div className="text-4xl mb-4 text-gray-500">
               <svg xmlns="http://www.w3.org/2000/svg" className="w-12 h-12 mx-auto" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
                 <path strokeLinecap="round" strokeLinejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
@@ -290,7 +290,7 @@ export default function AnalyticsPage() {
             {/* 인사이트 섹션 */}
             {data.insights.length > 0 && (
               <section className="mb-8" aria-label="지출 인사이트">
-                <h2 className="text-lg font-semibold text-white mb-3">인사이트</h2>
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-3">인사이트</h2>
                 <div className="space-y-2">
                   {(showAllInsights ? data.insights : data.insights.slice(0, 3)).map((insight, idx) => (
                     <div
@@ -318,8 +318,8 @@ export default function AnalyticsPage() {
             {/* 월별 지출 비교 + TOP 5 지출처 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-8">
               {/* 월별 지출 비교 */}
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-                <h2 className="text-lg font-semibold text-white mb-4">월별 지출 비교</h2>
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">월별 지출 비교</h2>
                 {monthlyBarData.some((d) => d.total > 0) ? (
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={monthlyBarData}>
@@ -348,8 +348,8 @@ export default function AnalyticsPage() {
               </div>
 
               {/* TOP 5 지출처 */}
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
-                <h2 className="text-lg font-semibold text-white mb-4">TOP 5 지출처</h2>
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
+                <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">TOP 5 지출처</h2>
                 {data.topMerchants.length > 0 ? (
                   <div className="space-y-5">
                     {data.topMerchants.map((merchant, idx) => {
@@ -369,7 +369,7 @@ export default function AnalyticsPage() {
                               <span className="text-sm font-mono text-white">{formatKRW(merchant.total)}</span>
                             </div>
                           </div>
-                          <div className="ml-8 bg-gray-800 rounded-full h-2 overflow-hidden">
+                          <div className="ml-8 bg-gray-200 dark:bg-gray-800 rounded-full h-2 overflow-hidden">
                             <div
                               className="h-2 rounded-full transition-[width]"
                               style={{
@@ -391,8 +391,8 @@ export default function AnalyticsPage() {
             </div>
 
             {/* 카테고리별 트렌드 */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8">
-              <h2 className="text-lg font-semibold text-white mb-4">카테고리별 트렌드 (최근 3개월)</h2>
+            <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-8">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">카테고리별 트렌드 (최근 3개월)</h2>
               {trendData.length > 0 && trendCategories.length > 0 ? (
                 <ResponsiveContainer width="100%" height={350}>
                   <LineChart data={trendData}>
@@ -433,9 +433,9 @@ export default function AnalyticsPage() {
 
             {/* 본인 vs 가족 비교 - 대시보드와 동일한 가로 바 스타일 */}
             {data.memberComparison.length > 1 && totalMember > 0 && (
-              <section className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8" aria-label="본인 가족 지출 비교">
+              <section className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-8" aria-label="본인 가족 지출 비교">
                 <div className="flex items-baseline justify-between mb-4">
-                  <h2 className="text-lg font-semibold text-white">본인 / 가족 지출</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">본인 / 가족 지출</h2>
                   <span className="text-sm text-gray-400">총 {formatKRW(totalMember)}</span>
                 </div>
                 {/* 가로 바 */}
@@ -482,10 +482,10 @@ export default function AnalyticsPage() {
 
             {/* 할부 요약 */}
             {installData && installData.activeInstallments.length > 0 && (
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
                 <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
                   <div>
-                    <h2 className="text-lg font-semibold text-white">할부 현황</h2>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">할부 현황</h2>
                     <p className="text-sm text-gray-400 mt-1">
                       진행 중 <span className="text-orange-400 font-medium">{installData.activeCount}건</span>
                       {" / "}
