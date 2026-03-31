@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
-import { transactions, incomes, savings } from "@/db/schema";
+import { transactions, incomes, savings, budgets } from "@/db/schema";
 import { and, eq, sql } from "drizzle-orm";
 
 interface CategorySummary {
@@ -11,6 +11,13 @@ interface CategorySummary {
 interface MemberSummary {
   memberType: string;
   total: number;
+}
+
+interface BudgetStatus {
+  category: string;
+  monthlyLimit: number;
+  currentSpend: number;
+  percentage: number;
 }
 
 interface DashboardData {
@@ -28,6 +35,7 @@ interface DashboardData {
   totalSavings: number;
   expenseToIncomeRatio: number | null;
   savingsRate: number | null;
+  budgets: BudgetStatus[];
 }
 
 function getPreviousMonth(year: number, month: number): { year: number; month: number } {
@@ -143,7 +151,23 @@ export async function GET(request: Request) {
 
     const totalSavings = Number(savingsRows[0]?.total ?? 0);
 
-    // 7. 비율 계산
+    // 7. 예산 상태 조회
+    const budgetRows = await db.select().from(budgets);
+    const categorySpendMap = new Map(
+      categoryBreakdown.map((c) => [c.category, c.total])
+    );
+    const budgetStatuses: BudgetStatus[] = budgetRows.map((b) => {
+      const currentSpend = categorySpendMap.get(b.category) ?? 0;
+      const percentage = b.monthlyLimit > 0 ? (currentSpend / b.monthlyLimit) * 100 : 0;
+      return {
+        category: b.category,
+        monthlyLimit: b.monthlyLimit,
+        currentSpend,
+        percentage: Math.round(percentage * 10) / 10,
+      };
+    });
+
+    // 8. 비율 계산
     const expenseToIncomeRatio =
       totalIncome > 0 ? (netExpense / totalIncome) * 100 : null;
     const savingsRate =
@@ -164,6 +188,7 @@ export async function GET(request: Request) {
       totalSavings,
       expenseToIncomeRatio,
       savingsRate,
+      budgets: budgetStatuses,
     };
 
     return NextResponse.json(data);

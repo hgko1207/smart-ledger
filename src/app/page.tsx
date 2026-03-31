@@ -30,6 +30,25 @@ interface InstallmentSummary {
   monthlyPaymentTotal: number;
 }
 
+interface BudgetStatus {
+  category: string;
+  monthlyLimit: number;
+  currentSpend: number;
+  percentage: number;
+}
+
+interface FixedCostItem {
+  description: string;
+  avgAmount: number;
+  months: number;
+  category: string;
+}
+
+interface FixedCostsData {
+  fixedCosts: FixedCostItem[];
+  totalMonthly: number;
+}
+
 interface DashboardData {
   year: number;
   month: number;
@@ -45,6 +64,7 @@ interface DashboardData {
   totalSavings: number;
   expenseToIncomeRatio: number | null;
   savingsRate: number | null;
+  budgets: BudgetStatus[];
 }
 
 /** 전월 대비 가장 크게 변한 카테고리 인사이트 생성 */
@@ -141,6 +161,8 @@ export default function DashboardPage() {
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [data, setData] = useState<DashboardData | null>(null);
   const [installments, setInstallments] = useState<InstallmentSummary | null>(null);
+  const [fixedCosts, setFixedCosts] = useState<FixedCostsData | null>(null);
+  const [showFixedCosts, setShowFixedCosts] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAllCategories, setShowAllCategories] = useState(false);
@@ -151,9 +173,10 @@ export default function DashboardPage() {
     setLoading(true);
     setError("");
     try {
-      const [dashRes, installRes] = await Promise.all([
+      const [dashRes, installRes, fixedRes] = await Promise.all([
         fetch(`/api/dashboard?year=${selectedYear}&month=${selectedMonth}`),
         fetch(`/api/installments?year=${selectedYear}&month=${selectedMonth}`),
+        fetch(`/api/fixed-costs?year=${selectedYear}&month=${selectedMonth}`),
       ]);
       if (!dashRes.ok) {
         const errData = (await dashRes.json()) as { error: string };
@@ -165,6 +188,11 @@ export default function DashboardPage() {
       if (installRes.ok) {
         const installData = (await installRes.json()) as InstallmentSummary;
         setInstallments(installData);
+      }
+
+      if (fixedRes.ok) {
+        const fixedData = (await fixedRes.json()) as FixedCostsData;
+        setFixedCosts(fixedData);
       }
     } catch (err) {
       const message =
@@ -209,6 +237,15 @@ export default function DashboardPage() {
   const pieTotal = useMemo(() => {
     return pieData.reduce((sum, c) => sum + c.total, 0);
   }, [pieData]);
+
+  const budgetMap = useMemo(() => {
+    if (!data) return new Map<string, BudgetStatus>();
+    const map = new Map<string, BudgetStatus>();
+    for (const b of data.budgets) {
+      map.set(b.category, b);
+    }
+    return map;
+  }, [data]);
 
   if (loading) {
     return (
@@ -334,7 +371,7 @@ export default function DashboardPage() {
             {/* 2. 요약 카드 그리드 */}
             <div
               className={`grid gap-4 mb-10 ${
-                hasIncome ? "grid-cols-1 md:grid-cols-3" : "grid-cols-1 md:grid-cols-1 max-w-sm"
+                hasIncome ? "grid-cols-1 md:grid-cols-2 lg:grid-cols-4" : "grid-cols-1 md:grid-cols-2 max-w-2xl"
               }`}
             >
               {/* 수입 대비 지출 */}
@@ -403,7 +440,71 @@ export default function DashboardPage() {
                   )}
                 </div>
               </div>
+
+              {/* 고정비 */}
+              <button
+                type="button"
+                onClick={() => setShowFixedCosts(!showFixedCosts)}
+                className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 flex items-start gap-4 text-left w-full hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors"
+                aria-expanded={showFixedCosts}
+                aria-label="고정비 상세 토글"
+              >
+                <div className="w-10 h-10 rounded-full bg-purple-500/10 flex items-center justify-center shrink-0">
+                  <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                  </svg>
+                </div>
+                <div>
+                  <p className="text-xs text-gray-400">고정비</p>
+                  {fixedCosts && fixedCosts.fixedCosts.length > 0 ? (
+                    <>
+                      <p className="text-xl font-bold text-gray-900 dark:text-white">
+                        월 {formatKRW(fixedCosts.totalMonthly)}
+                      </p>
+                      <p className="text-xs text-gray-500">{fixedCosts.fixedCosts.length}건 감지</p>
+                    </>
+                  ) : (
+                    <>
+                      <p className="text-xl font-bold text-gray-500">없음</p>
+                      <p className="text-xs text-gray-500">감지된 고정비 없음</p>
+                    </>
+                  )}
+                </div>
+              </button>
             </div>
+
+            {/* 고정비 상세 목록 (토글) */}
+            {showFixedCosts && fixedCosts && fixedCosts.fixedCosts.length > 0 && (
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-10 -mt-6">
+                <h3 className="text-sm font-semibold text-gray-900 dark:text-white mb-3">고정비 상세</h3>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-200 dark:bg-gray-800/50">
+                        <th className="text-left text-xs text-gray-400 font-medium px-4 py-2 rounded-l-lg">가맹점</th>
+                        <th className="text-left text-xs text-gray-400 font-medium px-4 py-2">카테고리</th>
+                        <th className="text-right text-xs text-gray-400 font-medium px-4 py-2 rounded-r-lg">월 평균</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fixedCosts.fixedCosts.map((fc) => (
+                        <tr key={fc.description} className="border-b border-gray-200 dark:border-gray-800">
+                          <td className="px-4 py-2.5 text-sm text-gray-900 dark:text-white">{fc.description}</td>
+                          <td className="px-4 py-2.5 text-sm">
+                            <span className="inline-block px-2 py-0.5 rounded bg-purple-500/15 text-purple-400 text-xs border border-purple-500/20">
+                              {fc.category}
+                            </span>
+                          </td>
+                          <td className="px-4 py-2.5 text-sm text-right font-mono text-gray-900 dark:text-white">
+                            {formatKRW(fc.avgAmount)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            )}
 
             {/* 3. 본인/가족 비교 - 토스 스타일 바 */}
             {data.memberBreakdown.length > 1 && memberTotal > 0 && (
@@ -518,35 +619,60 @@ export default function DashboardPage() {
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
-                  {/* 범례 — 카테고리 + 프로그레스 바 + 비율 + 금액 */}
+                  {/* 범례 — 카테고리 + 프로그레스 바 + 비율 + 금액 + 예산 */}
                   <div className="flex-1 w-full space-y-3">
                     {pieData.map((cat, i) => {
                       const pct = pieTotal > 0 ? ((cat.total / pieTotal) * 100).toFixed(1) : "0";
-                      const widthPct = pieTotal > 0 ? (cat.total / pieData[0].total) * 100 : 0;
+                      const budget = budgetMap.get(cat.category);
+                      const budgetPct = budget ? budget.percentage : 0;
+                      const budgetBarColor = budget
+                        ? budgetPct >= 100
+                          ? "bg-red-500"
+                          : budgetPct >= 80
+                            ? "bg-yellow-500"
+                            : "bg-blue-500"
+                        : "";
+                      const widthPct = budget
+                        ? Math.min(budgetPct, 100)
+                        : pieTotal > 0
+                          ? (cat.total / pieData[0].total) * 100
+                          : 0;
                       return (
-                        <div key={cat.category} className="flex items-center gap-3">
-                          <span
-                            className="w-3 h-3 rounded-full shrink-0"
-                            style={{ backgroundColor: COLORS[i % COLORS.length] }}
-                          />
-                          <span className="text-sm text-gray-600 dark:text-gray-300 w-20 shrink-0">
-                            {cat.category}
-                          </span>
-                          <div className="flex-1 bg-gray-200 dark:bg-gray-800 rounded-full h-2 min-w-0">
-                            <div
-                              className="h-2 rounded-full"
-                              style={{
-                                width: `${widthPct}%`,
-                                backgroundColor: COLORS[i % COLORS.length],
-                              }}
+                        <div key={cat.category}>
+                          <div className="flex items-center gap-3">
+                            <span
+                              className="w-3 h-3 rounded-full shrink-0"
+                              style={{ backgroundColor: COLORS[i % COLORS.length] }}
                             />
+                            <span className="text-sm text-gray-600 dark:text-gray-300 w-20 shrink-0">
+                              {cat.category}
+                            </span>
+                            <div className="flex-1 bg-gray-200 dark:bg-gray-800 rounded-full h-2 min-w-0">
+                              <div
+                                className={`h-2 rounded-full ${budget ? budgetBarColor : ""}`}
+                                style={{
+                                  width: `${widthPct}%`,
+                                  ...(!budget ? { backgroundColor: COLORS[i % COLORS.length] } : {}),
+                                }}
+                              />
+                            </div>
+                            <span className="text-xs text-gray-500 w-12 text-right shrink-0">
+                              {budget ? `${budgetPct.toFixed(0)}%` : `${pct}%`}
+                            </span>
+                            <span className="text-sm font-mono text-gray-900 dark:text-white shrink-0 text-right" style={{ minWidth: budget ? "10rem" : "7rem" }}>
+                              {formatKRW(cat.total)}
+                              {budget && (
+                                <span className="text-gray-500 text-xs">
+                                  /{(budget.monthlyLimit / 10000).toFixed(0)}만
+                                </span>
+                              )}
+                            </span>
+                            {budget && budgetPct >= 100 && (
+                              <span className="shrink-0 inline-block px-1.5 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-400 border border-red-500/20">
+                                초과!
+                              </span>
+                            )}
                           </div>
-                          <span className="text-xs text-gray-500 w-12 text-right shrink-0">
-                            {pct}%
-                          </span>
-                          <span className="text-sm font-mono text-gray-900 dark:text-white w-28 text-right shrink-0">
-                            {formatKRW(cat.total)}
-                          </span>
                         </div>
                       );
                     })}

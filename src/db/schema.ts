@@ -43,6 +43,14 @@ export const savings = sqliteTable("savings", {
   createdAt: text("created_at").notNull(),
 });
 
+// 예산 설정 테이블
+export const budgets = sqliteTable("budgets", {
+  id: text("id").primaryKey(), // UUID
+  category: text("category").notNull(), // 카테고리명
+  monthlyLimit: integer("monthly_limit").notNull(), // 월간 한도 (KRW)
+  createdAt: text("created_at").notNull(), // ISO8601
+});
+
 // 카테고리 자동 분류 규칙 테이블
 export const categoryRules = sqliteTable("category_rules", {
   id: text("id").primaryKey(), // UUID
@@ -59,5 +67,7 @@ export type Income = typeof incomes.$inferSelect;
 export type NewIncome = typeof incomes.$inferInsert;
 export type Saving = typeof savings.$inferSelect;
 export type NewSaving = typeof savings.$inferInsert;
+export type Budget = typeof budgets.$inferSelect;
+export type NewBudget = typeof budgets.$inferInsert;
 export type CategoryRule = typeof categoryRules.$inferSelect;
 export type NewCategoryRule = typeof categoryRules.$inferInsert;

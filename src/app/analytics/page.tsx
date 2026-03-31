@@ -16,6 +16,18 @@ import {
 import type { AnalyticsResponse, Insight } from "@/lib/analytics/insights";
 import type { InstallmentsResponse } from "@/app/api/installments/route";
 
+interface FixedCostItem {
+  description: string;
+  avgAmount: number;
+  months: number;
+  category: string;
+}
+
+interface FixedCostsData {
+  fixedCosts: FixedCostItem[];
+  totalMonthly: number;
+}
+
 const COLORS = [
   "#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6",
   "#ec4899", "#06b6d4", "#f97316", "#84cc16", "#6366f1",
@@ -92,6 +104,7 @@ export default function AnalyticsPage() {
   const [selectedMonth, setSelectedMonth] = useState(now.getMonth() + 1);
   const [data, setData] = useState<AnalyticsResponse | null>(null);
   const [installData, setInstallData] = useState<InstallmentsResponse | null>(null);
+  const [fixedCosts, setFixedCosts] = useState<FixedCostsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [showAllInsights, setShowAllInsights] = useState(false);
@@ -102,9 +115,10 @@ export default function AnalyticsPage() {
     setLoading(true);
     setError("");
     try {
-      const [analyticsRes, installRes] = await Promise.all([
+      const [analyticsRes, installRes, fixedRes] = await Promise.all([
         fetch(`/api/analytics?year=${selectedYear}&month=${selectedMonth}`),
         fetch(`/api/installments?year=${selectedYear}&month=${selectedMonth}`),
+        fetch(`/api/fixed-costs?year=${selectedYear}&month=${selectedMonth}`),
       ]);
       if (!analyticsRes.ok) {
         const errData = (await analyticsRes.json()) as { error: string };
@@ -116,6 +130,11 @@ export default function AnalyticsPage() {
       if (installRes.ok) {
         const instResult = (await installRes.json()) as InstallmentsResponse;
         setInstallData(instResult);
+      }
+
+      if (fixedRes.ok) {
+        const fixedResult = (await fixedRes.json()) as FixedCostsData;
+        setFixedCosts(fixedResult);
       }
     } catch (err) {
       const message =
@@ -478,6 +497,57 @@ export default function AnalyticsPage() {
                     })}
                 </div>
               </section>
+            )}
+
+            {/* 고정비 현황 */}
+            {fixedCosts && fixedCosts.fixedCosts.length > 0 && (
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-8">
+                <div className="flex items-center gap-3 mb-4">
+                  <div className="w-9 h-9 rounded-lg bg-purple-500/10 flex items-center justify-center">
+                    <svg className="w-5 h-5 text-purple-400" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">고정비 현황</h2>
+                    <p className="text-sm text-gray-400 mt-0.5">
+                      감지된 고정비 <span className="text-purple-400 font-medium">{fixedCosts.fixedCosts.length}건</span>
+                      {" / "}
+                      월 합계 <span className="text-purple-400 font-medium">{formatKRW(fixedCosts.totalMonthly)}</span>
+                    </p>
+                  </div>
+                </div>
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr className="bg-gray-200 dark:bg-gray-800/50">
+                        <th className="text-left text-xs text-gray-400 font-medium px-4 py-2.5 rounded-l-lg">가맹점</th>
+                        <th className="text-left text-xs text-gray-400 font-medium px-4 py-2.5">카테고리</th>
+                        <th className="text-right text-xs text-gray-400 font-medium px-4 py-2.5">월 평균</th>
+                        <th className="text-right text-xs text-gray-400 font-medium px-4 py-2.5 rounded-r-lg">3개월 합계</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {fixedCosts.fixedCosts.map((fc) => (
+                        <tr key={fc.description} className="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800/30 transition-colors">
+                          <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">{fc.description}</td>
+                          <td className="px-4 py-3 text-sm">
+                            <span className="inline-block px-2 py-0.5 rounded bg-purple-500/15 text-purple-400 text-xs border border-purple-500/20">
+                              {fc.category}
+                            </span>
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right font-mono text-gray-900 dark:text-white">
+                            {formatKRW(fc.avgAmount)}
+                          </td>
+                          <td className="px-4 py-3 text-sm text-right font-mono text-gray-500">
+                            {formatKRW(fc.avgAmount * fc.months)}
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+              </div>
             )}
 
             {/* 할부 요약 */}

@@ -1,7 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback, useRef } from "react";
-import type { CategoryRule } from "@/db/schema";
+import type { CategoryRule, Budget } from "@/db/schema";
+
+const BUDGET_CATEGORIES = [
+  "식비", "외식", "배달", "식료품/마트", "교통", "쇼핑", "패션/뷰티",
+  "의료", "주거/관리비", "통신", "교육", "구독", "여행", "문화/여가",
+  "육아/완구", "자동차", "생활", "기타",
+];
 
 const INCOME_SOURCE_LABELS: Record<string, string> = {
   salary: "월급",
@@ -40,6 +46,74 @@ export default function SettingsPage() {
     setSubtitleSaved(true);
     if (subtitleTimeoutRef.current) clearTimeout(subtitleTimeoutRef.current);
     subtitleTimeoutRef.current = setTimeout(() => setSubtitleSaved(false), 2000);
+  }
+
+  // 예산 설정
+  const [budgetList, setBudgetList] = useState<Budget[]>([]);
+  const [budgetLoading, setBudgetLoading] = useState(true);
+  const [budgetCategory, setBudgetCategory] = useState(BUDGET_CATEGORIES[0]);
+  const [budgetAmount, setBudgetAmount] = useState("");
+  const [budgetSubmitting, setBudgetSubmitting] = useState(false);
+
+  const fetchBudgets = useCallback(async () => {
+    setBudgetLoading(true);
+    try {
+      const res = await fetch("/api/budgets");
+      if (!res.ok) throw new Error("예산 목록 로딩 실패");
+      const data = (await res.json()) as { budgets: Budget[] };
+      setBudgetList(data.budgets);
+    } catch {
+      // silent
+    } finally {
+      setBudgetLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchBudgets();
+  }, [fetchBudgets]);
+
+  async function handleSaveBudget(e: React.FormEvent) {
+    e.preventDefault();
+    const amount = parseInt(budgetAmount, 10);
+    if (!budgetCategory || !amount || amount <= 0) return;
+
+    setBudgetSubmitting(true);
+    try {
+      const res = await fetch("/api/budgets", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ category: budgetCategory, monthlyLimit: amount }),
+      });
+      if (!res.ok) {
+        const errData = (await res.json()) as { error: string };
+        throw new Error(errData.error);
+      }
+      setBudgetAmount("");
+      void fetchBudgets();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "예산 저장에 실패했습니다.";
+      alert(message);
+    } finally {
+      setBudgetSubmitting(false);
+    }
+  }
+
+  async function handleDeleteBudget(id: string) {
+    if (!confirm("이 예산 설정을 삭제하시겠습니까?")) return;
+    try {
+      const res = await fetch(`/api/budgets?id=${id}`, { method: "DELETE" });
+      if (!res.ok) {
+        const errData = (await res.json()) as { error: string };
+        throw new Error(errData.error);
+      }
+      void fetchBudgets();
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "예산 삭제에 실패했습니다.";
+      alert(message);
+    }
   }
 
   // 새 규칙 폼
@@ -309,6 +383,117 @@ export default function SettingsPage() {
                         <button
                           onClick={() => void handleDeleteRule(rule.id)}
                           aria-label={`${rule.pattern} 규칙 삭제`}
+                          className="text-red-400 hover:text-red-300 text-xs font-medium transition-colors px-2 py-1 rounded hover:bg-red-500/10"
+                        >
+                          삭제
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
+
+        {/* 예산 설정 */}
+        <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-6">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="w-9 h-9 rounded-lg bg-emerald-500/10 flex items-center justify-center">
+              <svg className="w-5 h-5 text-emerald-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 7h6m0 10v-3m-3 3h.01M9 17h.01M9 14h.01M12 14h.01M15 11h.01M12 11h.01M9 11h.01M7 21h10a2 2 0 002-2V5a2 2 0 00-2-2H7a2 2 0 00-2 2v14a2 2 0 002 2z" />
+              </svg>
+            </div>
+            <div>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-white">예산 설정</h2>
+              <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">카테고리별 월간 예산 한도를 설정합니다</p>
+            </div>
+          </div>
+
+          {/* 예산 추가 폼 */}
+          <form onSubmit={(e) => void handleSaveBudget(e)} className="bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded-xl p-4 mb-6">
+            <h3 className="text-sm font-medium text-gray-700 dark:text-gray-300 mb-3">예산 추가 / 수정</h3>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+              <div>
+                <label htmlFor="budget-category" className="block text-xs font-medium text-gray-400 mb-1.5">
+                  카테고리 <span className="text-red-400">*</span>
+                </label>
+                <select
+                  id="budget-category"
+                  value={budgetCategory}
+                  onChange={(e) => setBudgetCategory(e.target.value)}
+                  aria-label="예산 카테고리 선택"
+                  className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                >
+                  {BUDGET_CATEGORIES.map((cat) => (
+                    <option key={cat} value={cat}>{cat}</option>
+                  ))}
+                </select>
+              </div>
+              <div>
+                <label htmlFor="budget-amount" className="block text-xs font-medium text-gray-400 mb-1.5">
+                  월간 한도 (원) <span className="text-red-400">*</span>
+                </label>
+                <input
+                  id="budget-amount"
+                  type="number"
+                  value={budgetAmount}
+                  onChange={(e) => setBudgetAmount(e.target.value)}
+                  placeholder="500000"
+                  required
+                  min={1}
+                  aria-label="월간 예산 한도 입력"
+                  className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-500"
+                />
+              </div>
+              <div className="flex items-end">
+                <button
+                  type="submit"
+                  disabled={budgetSubmitting}
+                  aria-label="예산 저장"
+                  className="w-full px-4 py-2.5 bg-emerald-600 hover:bg-emerald-700 rounded-lg text-sm font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed text-white"
+                >
+                  {budgetSubmitting ? "저장 중..." : "저장"}
+                </button>
+              </div>
+            </div>
+          </form>
+
+          {/* 예산 목록 */}
+          {budgetLoading ? (
+            <div className="flex items-center justify-center py-8">
+              <p className="text-gray-400 text-sm">예산을 불러오는 중...</p>
+            </div>
+          ) : budgetList.length === 0 ? (
+            <div className="text-center py-8">
+              <p className="text-gray-400 text-sm">설정된 예산이 없습니다</p>
+              <p className="text-gray-500 text-xs mt-1">위 폼에서 카테고리별 예산을 설정해 보세요</p>
+            </div>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full">
+                <thead>
+                  <tr className="bg-gray-100 dark:bg-gray-800/50">
+                    <th className="text-left text-xs text-gray-400 font-medium px-4 py-3 rounded-l-lg">카테고리</th>
+                    <th className="text-right text-xs text-gray-400 font-medium px-4 py-3">월간 한도</th>
+                    <th className="text-center text-xs text-gray-400 font-medium px-4 py-3 rounded-r-lg">작업</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {budgetList.map((b) => (
+                    <tr key={b.id} className="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800/30 transition-colors">
+                      <td className="px-4 py-3 text-sm">
+                        <span className="inline-block px-2 py-0.5 rounded bg-emerald-500/15 text-emerald-400 text-xs border border-emerald-500/20">
+                          {b.category}
+                        </span>
+                      </td>
+                      <td className="px-4 py-3 text-sm text-right font-mono text-gray-900 dark:text-white">
+                        {b.monthlyLimit.toLocaleString("ko-KR")}원
+                      </td>
+                      <td className="px-4 py-3 text-center">
+                        <button
+                          onClick={() => void handleDeleteBudget(b.id)}
+                          aria-label={`${b.category} 예산 삭제`}
                           className="text-red-400 hover:text-red-300 text-xs font-medium transition-colors px-2 py-1 rounded hover:bg-red-500/10"
                         >
                           삭제
