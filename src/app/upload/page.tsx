@@ -195,7 +195,7 @@ export default function UploadPage() {
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* 헤더 */}
         <div className="mb-10">
-          <h1 className="text-2xl font-bold text-white">명세서 업로드</h1>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">명세서 업로드</h1>
           <p className="text-gray-400 text-sm mt-1">
             현대카드 엑셀 명세서(.xls)를 업로드하면 자동으로 분석됩니다
           </p>
@@ -217,7 +217,7 @@ export default function UploadPage() {
             className={`border-2 border-dashed rounded-2xl p-16 text-center cursor-pointer transition-all ${
               dragOver
                 ? "border-blue-400 bg-blue-500/10"
-                : "border-gray-700 hover:border-gray-600 bg-gray-900"
+                : "border-gray-300 dark:border-gray-700 hover:border-gray-400 dark:hover:border-gray-600 bg-gray-100 dark:bg-gray-900"
             }`}
           >
             <input
@@ -236,7 +236,7 @@ export default function UploadPage() {
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
                 </div>
-                <p className="text-lg text-gray-300 font-medium">
+                <p className="text-lg text-gray-700 dark:text-gray-300 font-medium">
                   {fileName} 분석 중...
                 </p>
                 <p className="text-sm text-gray-400 mt-1">잠시만 기다려 주세요</p>
@@ -244,13 +244,13 @@ export default function UploadPage() {
             ) : (
               <div>
                 <div className="flex justify-center mb-4">
-                  <div className="w-16 h-16 rounded-2xl bg-gray-800 border border-gray-700 flex items-center justify-center">
+                  <div className="w-16 h-16 rounded-2xl bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 flex items-center justify-center">
                     <svg className="w-8 h-8 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M3 16.5v2.25A2.25 2.25 0 005.25 21h13.5A2.25 2.25 0 0021 18.75V16.5m-13.5-9L12 3m0 0l4.5 4.5M12 3v13.5" />
                     </svg>
                   </div>
                 </div>
-                <p className="text-lg text-gray-300 font-medium mb-1">
+                <p className="text-lg text-gray-700 dark:text-gray-300 font-medium mb-1">
                   엑셀 파일을 드래그하거나 클릭하여 선택
                 </p>
                 <p className="text-sm text-gray-400">
@@ -276,25 +276,25 @@ export default function UploadPage() {
           <div>
             {/* 요약 카드 */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                 <p className="text-xs text-gray-400 mb-1">명세서</p>
                 <p className="text-lg font-semibold text-white">
                   {statementInfo.year}년 {statementInfo.month}월
                 </p>
               </div>
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                 <p className="text-xs text-gray-400 mb-1">파싱된 거래</p>
                 <p className="text-lg font-semibold text-white">
                   {parsedTransactions.length}<span className="text-sm font-normal text-gray-400 ml-0.5">건</span>
                 </p>
               </div>
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                 <p className="text-xs text-gray-400 mb-1">중복 후보</p>
                 <p className="text-lg font-semibold text-yellow-400">
                   {duplicates.length}<span className="text-sm font-normal text-gray-400 ml-0.5">건</span>
                 </p>
               </div>
-              <div className="bg-gray-900 border border-gray-800 rounded-xl p-4">
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-4">
                 <p className="text-xs text-gray-400 mb-1">저장 예정</p>
                 <p className="text-lg font-semibold text-green-400">
                   {activeCount}<span className="text-sm font-normal text-gray-400 ml-0.5">건</span>
@@ -320,7 +320,7 @@ export default function UploadPage() {
             )}
 
             {/* 거래 내역 테이블 */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl overflow-hidden mb-6">
+            <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl overflow-hidden mb-6">
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
@@ -428,7 +428,7 @@ export default function UploadPage() {
               <button
                 onClick={handleReset}
                 aria-label="다시 업로드"
-                className="px-6 py-3 bg-gray-900 border border-gray-800 hover:bg-gray-800 text-gray-300 font-medium rounded-lg transition-colors"
+                className="px-6 py-3 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-300 font-medium rounded-lg transition-colors"
               >
                 다시 업로드
               </button>
@@ -471,7 +471,7 @@ export default function UploadPage() {
               </button>
               <a
                 href="/"
-                className="px-6 py-3 bg-gray-900 border border-gray-800 hover:bg-gray-800 text-gray-300 font-medium rounded-lg transition-colors inline-block"
+                className="px-6 py-3 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-200 dark:hover:bg-gray-800 text-gray-300 font-medium rounded-lg transition-colors inline-block"
               >
                 대시보드로 이동
               </a>
@@ -482,21 +482,21 @@ export default function UploadPage() {
         {/* 빈 상태 안내 (idle 상태에서 에러 없을 때) */}
         {status === "idle" && !error && (
           <div className="mt-8 grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
               <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3">
                 <span className="text-blue-400 font-bold text-sm">1</span>
               </div>
               <h3 className="text-sm font-medium text-white mb-1">파일 선택</h3>
               <p className="text-xs text-gray-400">현대카드 엑셀 명세서(.xls)를 드래그하거나 클릭하여 업로드합니다</p>
             </div>
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
               <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3">
                 <span className="text-blue-400 font-bold text-sm">2</span>
               </div>
               <h3 className="text-sm font-medium text-white mb-1">자동 분석</h3>
               <p className="text-xs text-gray-400">거래 내역이 자동으로 파싱되고 카테고리가 분류됩니다</p>
             </div>
-            <div className="bg-gray-900 border border-gray-800 rounded-xl p-5">
+            <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl p-5">
               <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center mb-3">
                 <span className="text-blue-400 font-bold text-sm">3</span>
               </div>

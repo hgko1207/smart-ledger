@@ -349,12 +349,12 @@ export default function IncomePage() {
   const savingsRate = totalIncome > 0 ? (totalMonthlySavings / totalIncome) * 100 : 0;
 
   return (
-    <div className="min-h-screen bg-gray-950">
+    <div className="min-h-screen">
       <div className="max-w-6xl mx-auto px-4 py-8">
         {/* 헤더 */}
         <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
           <div>
-            <h1 className="text-2xl font-bold text-white">수입 / 저축</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">수입 / 저축</h1>
             <p className="text-gray-400 text-sm mt-1">수입을 관리하고 저축 현황을 한눈에 확인하세요</p>
           </div>
           <div className="flex items-center gap-3">
@@ -362,7 +362,7 @@ export default function IncomePage() {
               value={`${selectedYear}-${selectedMonth}`}
               onChange={handleMonthChange}
               aria-label="조회 월 선택"
-              className="bg-gray-900 border border-gray-800 rounded-xl px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-xl px-4 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
             >
               {monthOptions.map((opt) => (
                 <option key={`${opt.year}-${opt.month}`} value={`${opt.year}-${opt.month}`}>
@@ -372,7 +372,7 @@ export default function IncomePage() {
             </select>
             <a
               href="/"
-              className="px-4 py-2 bg-gray-900 border border-gray-800 hover:bg-gray-800 rounded-xl text-sm text-white transition-colors"
+              className="px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 hover:bg-gray-200 dark:hover:bg-gray-800 rounded-xl text-sm text-gray-900 dark:text-white transition-colors"
               aria-label="대시보드로 이동"
             >
               대시보드
@@ -393,7 +393,7 @@ export default function IncomePage() {
               <p className="text-red-400 mb-4">{error}</p>
               <button
                 onClick={() => void fetchData()}
-                className="px-4 py-2 bg-gray-900 border border-gray-800 rounded-xl hover:bg-gray-800 transition-colors text-white text-sm"
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-xl hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-gray-900 dark:text-white text-sm"
                 aria-label="데이터 다시 불러오기"
               >
                 다시 시도
@@ -404,7 +404,7 @@ export default function IncomePage() {
           <>
             {/* 요약 카드 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-2 h-2 rounded-full bg-green-400" />
                   <p className="text-sm text-gray-400">이번 달 수입</p>
@@ -412,7 +412,7 @@ export default function IncomePage() {
                 <p className="text-2xl font-bold text-green-400">{formatKRW(totalIncome)}</p>
                 <p className="text-xs text-gray-500 mt-1">{incomeList.length}건의 수입</p>
               </div>
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-2 h-2 rounded-full bg-blue-400" />
                   <p className="text-sm text-gray-400">월 적금 합계</p>
@@ -422,12 +422,12 @@ export default function IncomePage() {
                   {savingsList.filter((s) => !s.endDate || new Date(s.endDate) >= new Date()).length}개 진행중
                 </p>
               </div>
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5">
                 <div className="flex items-center gap-2 mb-3">
                   <div className="w-2 h-2 rounded-full bg-yellow-400" />
                   <p className="text-sm text-gray-400">저축률</p>
                 </div>
-                <p className="text-2xl font-bold text-white">
+                <p className="text-2xl font-bold text-gray-900 dark:text-white">
                   {totalIncome > 0 ? `${savingsRate.toFixed(1)}%` : "---"}
                 </p>
                 {totalIncome > 0 && (
@@ -437,7 +437,7 @@ export default function IncomePage() {
                       <span>{savingsRate.toFixed(1)}%</span>
                       <span>100%</span>
                     </div>
-                    <div className="w-full bg-gray-800 rounded-full h-2.5">
+                    <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-2.5">
                       <div
                         className={`h-2.5 rounded-full transition-[width] duration-500 ${
                           savingsRate >= 30 ? "bg-green-500" : savingsRate >= 15 ? "bg-yellow-500" : "bg-red-500"
@@ -451,10 +451,10 @@ export default function IncomePage() {
             </div>
 
             {/* 수입 섹션 */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5 mb-6">
+            <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5 mb-6">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">수입 목록</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">수입 목록</h2>
                   <p className="text-xs text-gray-500 mt-0.5">클릭하여 인라인 편집</p>
                 </div>
                 <button
@@ -462,7 +462,7 @@ export default function IncomePage() {
                   aria-label={showIncomeForm ? "수입 추가 폼 닫기" : "새 수입 추가"}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                     showIncomeForm
-                      ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                      ? "bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                       : "bg-blue-600 hover:bg-blue-700 text-white"
                   }`}
                 >
@@ -472,7 +472,7 @@ export default function IncomePage() {
 
               {/* 수입 입력 폼 */}
               {showIncomeForm && (
-                <form onSubmit={(e) => void handleIncomeSubmit(e)} className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5 mb-5">
+                <form onSubmit={(e) => void handleIncomeSubmit(e)} className="bg-gray-200 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/50 rounded-xl p-5 mb-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <div>
                       <label className="block text-sm text-gray-400 mb-1.5">
@@ -485,7 +485,7 @@ export default function IncomePage() {
                         placeholder="3,000,000"
                         required
                         aria-label="수입 금액 입력"
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-600"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-600"
                       />
                     </div>
                     <div>
@@ -498,7 +498,7 @@ export default function IncomePage() {
                         onChange={(e) => setIncomeDate(e.target.value)}
                         required
                         aria-label="수입 날짜 선택"
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -509,7 +509,7 @@ export default function IncomePage() {
                         value={incomeSource}
                         onChange={(e) => setIncomeSource(e.target.value as IncomeSource)}
                         aria-label="수입 유형 선택"
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       >
                         {Object.entries(SOURCE_LABELS).map(([value, label]) => (
                           <option key={value} value={value}>{label}</option>
@@ -524,7 +524,7 @@ export default function IncomePage() {
                         onChange={(e) => setIncomeDesc(e.target.value)}
                         placeholder="선택 입력"
                         aria-label="수입 설명 입력"
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-600"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-600"
                       />
                     </div>
                   </div>
@@ -542,7 +542,7 @@ export default function IncomePage() {
               {/* 수입 목록 */}
               {incomeList.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-800 flex items-center justify-center">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
                     <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
@@ -554,7 +554,7 @@ export default function IncomePage() {
                 <div className="overflow-x-auto">
                   <table className="w-full" aria-label="수입 목록 테이블">
                     <thead>
-                      <tr className="border-b border-gray-800">
+                      <tr className="border-b border-gray-200 dark:border-gray-800">
                         <th className="text-left text-xs text-gray-500 font-medium px-4 py-3 uppercase tracking-wider">날짜</th>
                         <th className="text-left text-xs text-gray-500 font-medium px-4 py-3 uppercase tracking-wider">유형</th>
                         <th className="text-right text-xs text-gray-500 font-medium px-4 py-3 uppercase tracking-wider">금액</th>
@@ -562,17 +562,17 @@ export default function IncomePage() {
                         <th className="text-center text-xs text-gray-500 font-medium px-4 py-3 uppercase tracking-wider">작업</th>
                       </tr>
                     </thead>
-                    <tbody className="divide-y divide-gray-800/50">
+                    <tbody className="divide-y divide-gray-200 dark:divide-gray-800/50">
                       {incomeList.map((inc) => (
                         editingIncomeId === inc.id ? (
-                          <tr key={inc.id} className="bg-gray-800/40">
+                          <tr key={inc.id} className="bg-gray-100 dark:bg-gray-800/40">
                             <td className="px-4 py-3">
                               <input
                                 type="date"
                                 value={editIncomeData.date}
                                 onChange={(e) => setEditIncomeData({ ...editIncomeData, date: e.target.value })}
                                 aria-label="수입 날짜 수정"
-                                className="bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                               />
                             </td>
                             <td className="px-4 py-3">
@@ -580,7 +580,7 @@ export default function IncomePage() {
                                 value={editIncomeData.source}
                                 onChange={(e) => setEditIncomeData({ ...editIncomeData, source: e.target.value as IncomeSource })}
                                 aria-label="수입 유형 수정"
-                                className="bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                               >
                                 {Object.entries(SOURCE_LABELS).map(([value, label]) => (
                                   <option key={value} value={value}>{label}</option>
@@ -593,7 +593,7 @@ export default function IncomePage() {
                                 value={editIncomeData.amount}
                                 onChange={(e) => setEditIncomeData({ ...editIncomeData, amount: e.target.value.replace(/[^0-9,]/g, "") })}
                                 aria-label="수입 금액 수정"
-                                className="bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-sm text-right text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm text-right text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                               />
                             </td>
                             <td className="px-4 py-3">
@@ -602,7 +602,7 @@ export default function IncomePage() {
                                 value={editIncomeData.description}
                                 onChange={(e) => setEditIncomeData({ ...editIncomeData, description: e.target.value })}
                                 aria-label="수입 설명 수정"
-                                className="bg-gray-900 border border-gray-700 rounded-lg px-2 py-1.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
+                                className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-2 py-1.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 w-full"
                               />
                             </td>
                             <td className="px-4 py-3 text-center">
@@ -618,7 +618,7 @@ export default function IncomePage() {
                                 <button
                                   onClick={cancelEditIncome}
                                   aria-label="수입 수정 취소"
-                                  className="px-3 py-1 bg-gray-700 hover:bg-gray-600 rounded-lg text-xs text-gray-300 transition-colors"
+                                  className="px-3 py-1 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg text-xs text-gray-700 dark:text-gray-300 transition-colors"
                                 >
                                   취소
                                 </button>
@@ -628,10 +628,10 @@ export default function IncomePage() {
                         ) : (
                           <tr
                             key={inc.id}
-                            className="hover:bg-gray-800/40 transition-colors cursor-pointer group"
+                            className="hover:bg-gray-100 dark:hover:bg-gray-800/40 transition-colors cursor-pointer group"
                             onClick={() => startEditIncome(inc)}
                           >
-                            <td className="px-4 py-3 text-sm text-gray-300">{formatDate(inc.date)}</td>
+                            <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{formatDate(inc.date)}</td>
                             <td className="px-4 py-3 text-sm">
                               <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${
                                 SOURCE_COLORS[inc.source] ?? "bg-gray-500/20 text-gray-400"
@@ -664,10 +664,10 @@ export default function IncomePage() {
             </div>
 
             {/* 적금 섹션 */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-5">
+            <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5">
               <div className="flex items-center justify-between mb-5">
                 <div>
-                  <h2 className="text-lg font-semibold text-white">적금 관리</h2>
+                  <h2 className="text-lg font-semibold text-gray-900 dark:text-white">적금 관리</h2>
                   <p className="text-xs text-gray-500 mt-0.5">클릭하여 편집</p>
                 </div>
                 <button
@@ -675,7 +675,7 @@ export default function IncomePage() {
                   aria-label={showSavingsForm ? "적금 추가 폼 닫기" : "새 적금 추가"}
                   className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
                     showSavingsForm
-                      ? "bg-gray-800 hover:bg-gray-700 text-gray-300"
+                      ? "bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
                       : "bg-blue-600 hover:bg-blue-700 text-white"
                   }`}
                 >
@@ -685,7 +685,7 @@ export default function IncomePage() {
 
               {/* 적금 입력 폼 */}
               {showSavingsForm && (
-                <form onSubmit={(e) => void handleSavingsSubmit(e)} className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5 mb-5">
+                <form onSubmit={(e) => void handleSavingsSubmit(e)} className="bg-gray-200 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/50 rounded-xl p-5 mb-5">
                   <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                     <div>
                       <label className="block text-sm text-gray-400 mb-1.5">
@@ -698,7 +698,7 @@ export default function IncomePage() {
                         placeholder="청약저축"
                         required
                         aria-label="적금명 입력"
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-600"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-600"
                       />
                     </div>
                     <div>
@@ -712,7 +712,7 @@ export default function IncomePage() {
                         placeholder="500,000"
                         required
                         aria-label="월 납입액 입력"
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-600"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 dark:placeholder-gray-600"
                       />
                     </div>
                     <div>
@@ -725,7 +725,7 @@ export default function IncomePage() {
                         onChange={(e) => setSavingsStartDate(e.target.value)}
                         required
                         aria-label="적금 시작일 선택"
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                     <div>
@@ -735,7 +735,7 @@ export default function IncomePage() {
                         value={savingsEndDate}
                         onChange={(e) => setSavingsEndDate(e.target.value)}
                         aria-label="적금 종료일 선택 (선택사항)"
-                        className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                       />
                     </div>
                   </div>
@@ -753,7 +753,7 @@ export default function IncomePage() {
               {/* 적금 목록 */}
               {savingsList.length === 0 ? (
                 <div className="text-center py-12">
-                  <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-800 flex items-center justify-center">
+                  <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-gray-200 dark:bg-gray-800 flex items-center justify-center">
                     <svg className="w-6 h-6 text-gray-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M2.25 18.75a60.07 60.07 0 0115.797 2.101c.727.198 1.453-.342 1.453-1.096V18.75M3.75 4.5v.75A.75.75 0 013 6h-.75m0 0v-.375c0-.621.504-1.125 1.125-1.125H20.25M2.25 6v9m18-10.5v.75c0 .414.336.75.75.75h.75m-1.5-1.5h.375c.621 0 1.125.504 1.125 1.125v9.75c0 .621-.504 1.125-1.125 1.125h-.375m1.5-1.5H21a.75.75 0 00-.75.75v.75m0 0H3.75m0 0h-.375a1.125 1.125 0 01-1.125-1.125V15m1.5 1.5v-.75A.75.75 0 003 15h-.75M15 10.5a3 3 0 11-6 0 3 3 0 016 0zm3 0h.008v.008H18V10.5zm-12 0h.008v.008H6V10.5z" />
                     </svg>
@@ -768,7 +768,7 @@ export default function IncomePage() {
 
                     if (editingSavingId === s.id) {
                       return (
-                        <div key={s.id} className="bg-gray-800/60 border border-gray-700/50 rounded-xl p-5">
+                        <div key={s.id} className="bg-gray-200 dark:bg-gray-800/60 border border-gray-300 dark:border-gray-700/50 rounded-xl p-5">
                           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-4 mb-4">
                             <div>
                               <label className="block text-sm text-gray-400 mb-1.5">
@@ -779,7 +779,7 @@ export default function IncomePage() {
                                 value={editSavingData.name}
                                 onChange={(e) => setEditSavingData({ ...editSavingData, name: e.target.value })}
                                 aria-label="적금명 수정"
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                             </div>
                             <div>
@@ -791,7 +791,7 @@ export default function IncomePage() {
                                 value={editSavingData.monthlyAmount}
                                 onChange={(e) => setEditSavingData({ ...editSavingData, monthlyAmount: e.target.value.replace(/[^0-9,]/g, "") })}
                                 aria-label="월 납입액 수정"
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                             </div>
                             <div>
@@ -803,7 +803,7 @@ export default function IncomePage() {
                                 value={editSavingData.startDate}
                                 onChange={(e) => setEditSavingData({ ...editSavingData, startDate: e.target.value })}
                                 aria-label="적금 시작일 수정"
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                             </div>
                             <div>
@@ -813,7 +813,7 @@ export default function IncomePage() {
                                 value={editSavingData.endDate}
                                 onChange={(e) => setEditSavingData({ ...editSavingData, endDate: e.target.value })}
                                 aria-label="적금 종료일 수정 (선택사항)"
-                                className="w-full bg-gray-900 border border-gray-700 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                                className="w-full bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 rounded-lg px-3 py-2.5 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                               />
                             </div>
                           </div>
@@ -829,7 +829,7 @@ export default function IncomePage() {
                             <button
                               onClick={cancelEditSaving}
                               aria-label="적금 수정 취소"
-                              className="px-4 py-2 bg-gray-700 hover:bg-gray-600 rounded-lg text-sm text-gray-300 transition-colors"
+                              className="px-4 py-2 bg-gray-200 dark:bg-gray-700 hover:bg-gray-300 dark:hover:bg-gray-600 rounded-lg text-sm text-gray-700 dark:text-gray-300 transition-colors"
                             >
                               취소
                             </button>
@@ -843,8 +843,8 @@ export default function IncomePage() {
                         key={s.id}
                         className={`group flex flex-col sm:flex-row sm:items-center sm:justify-between p-4 rounded-xl cursor-pointer transition-colors border ${
                           isActive
-                            ? "bg-gray-800/40 hover:bg-gray-800/60 border-gray-800"
-                            : "bg-gray-800/20 hover:bg-gray-800/30 border-gray-800/50"
+                            ? "bg-gray-100 dark:bg-gray-800/40 hover:bg-gray-200 dark:hover:bg-gray-800/60 border-gray-200 dark:border-gray-800"
+                            : "bg-gray-50 dark:bg-gray-800/20 hover:bg-gray-100 dark:hover:bg-gray-800/30 border-gray-200 dark:border-gray-800/50"
                         }`}
                         onClick={() => startEditSaving(s)}
                       >
@@ -854,7 +854,7 @@ export default function IncomePage() {
                           }`} />
                           <div>
                             <div className="flex items-center gap-2 flex-wrap">
-                              <span className="font-medium text-white">{s.name}</span>
+                              <span className="font-medium text-gray-900 dark:text-white">{s.name}</span>
                               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                 isActive
                                   ? "bg-green-500/15 text-green-400 border border-green-500/20"

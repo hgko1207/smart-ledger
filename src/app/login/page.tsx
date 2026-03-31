@@ -37,7 +37,7 @@ export default function LoginPage() {
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-950">
-      <div className="w-full max-w-sm p-8 bg-gray-900 rounded-2xl border border-gray-800">
+      <div className="w-full max-w-sm p-8 bg-gray-100 dark:bg-gray-900 rounded-2xl border border-gray-200 dark:border-gray-800">
         {/* 로고 영역 */}
         <div className="flex justify-center mb-6">
           <div className="w-12 h-12 rounded-xl bg-blue-600/10 border border-blue-500/20 flex items-center justify-center">

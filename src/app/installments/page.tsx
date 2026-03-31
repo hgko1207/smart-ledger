@@ -105,14 +105,14 @@ export default function InstallmentsPage() {
         {/* 헤더 */}
         <div className="flex items-center justify-between mb-10">
           <div>
-            <h1 className="text-2xl font-bold text-white">할부 관리</h1>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">할부 관리</h1>
             <p className="text-gray-400 text-sm mt-1">진행 중인 할부 현황과 납부 일정을 관리합니다</p>
           </div>
           <select
             value={`${selectedYear}-${selectedMonth}`}
             onChange={handleMonthChange}
             aria-label="월 선택"
-            className="bg-gray-900 border border-gray-800 rounded-lg px-4 py-2 text-sm text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
+            className="bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-800 rounded-lg px-4 py-2 text-sm text-gray-900 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500"
           >
             {monthOptions.map((opt) => (
               <option key={`${opt.year}-${opt.month}`} value={`${opt.year}-${opt.month}`}>
@@ -142,7 +142,7 @@ export default function InstallmentsPage() {
               <button
                 onClick={() => void fetchData()}
                 aria-label="다시 시도"
-                className="px-4 py-2 bg-gray-900 border border-gray-800 rounded-lg hover:bg-gray-800 transition-colors text-sm text-gray-300"
+                className="px-4 py-2 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 transition-colors text-sm text-gray-700 dark:text-gray-300"
               >
                 다시 시도
               </button>
@@ -152,7 +152,7 @@ export default function InstallmentsPage() {
           <>
             {/* 요약 카드 3개 */}
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-9 h-9 rounded-lg bg-orange-500/10 flex items-center justify-center">
                     <svg className="w-5 h-5 text-orange-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -163,7 +163,7 @@ export default function InstallmentsPage() {
                 </div>
                 <p className="text-2xl font-bold text-orange-400">{data.activeCount}<span className="text-lg font-normal text-gray-400 ml-1">건</span></p>
               </div>
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-9 h-9 rounded-lg bg-red-500/10 flex items-center justify-center">
                     <svg className="w-5 h-5 text-red-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -174,7 +174,7 @@ export default function InstallmentsPage() {
                 </div>
                 <p className="text-2xl font-bold text-red-400">{formatKRW(data.totalRemaining)}</p>
               </div>
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
                 <div className="flex items-center gap-3 mb-3">
                   <div className="w-9 h-9 rounded-lg bg-yellow-500/10 flex items-center justify-center">
                     <svg className="w-5 h-5 text-yellow-400" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
@@ -188,7 +188,7 @@ export default function InstallmentsPage() {
             </div>
 
             {/* 진행 중 할부 테이블 */}
-            <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6 mb-8">
+            <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-8">
               <h2 className="text-lg font-semibold text-white mb-4">진행 중 할부</h2>
               {data.activeInstallments.length === 0 ? (
                 <div className="text-center py-12">
@@ -202,7 +202,7 @@ export default function InstallmentsPage() {
                 <div className="overflow-x-auto">
                   <table className="w-full">
                     <thead>
-                      <tr className="bg-gray-800/50">
+                      <tr className="bg-gray-100 dark:bg-gray-800/50">
                         <th className="text-left text-xs text-gray-400 font-medium px-4 py-3 rounded-l-lg">가맹점</th>
                         <th className="text-center text-xs text-gray-400 font-medium px-4 py-3">할부기간</th>
                         <th className="text-center text-xs text-gray-400 font-medium px-4 py-3">현재회차</th>
@@ -217,16 +217,16 @@ export default function InstallmentsPage() {
                       {data.activeInstallments.map((item) => {
                         const progress = (item.installmentCurrent / item.installmentTotal) * 100;
                         return (
-                          <tr key={item.id} className="border-b border-gray-800 hover:bg-gray-800/30 transition-colors">
+                          <tr key={item.id} className="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800/30 transition-colors">
                             <td className="px-4 py-3.5 text-sm">
-                              <div className="font-medium text-white">{item.description}</div>
+                              <div className="font-medium text-gray-900 dark:text-white">{item.description}</div>
                               <div className="text-xs text-gray-400 mt-0.5">{formatDate(item.date)}</div>
                             </td>
-                            <td className="px-4 py-3.5 text-sm text-center text-gray-300">
+                            <td className="px-4 py-3.5 text-sm text-center text-gray-700 dark:text-gray-300">
                               {item.installmentTotal}개월
                             </td>
                             <td className="px-4 py-3.5 text-sm text-center">
-                              <span className="text-white font-medium">{item.installmentCurrent}</span>
+                              <span className="text-gray-900 dark:text-white font-medium">{item.installmentCurrent}</span>
                               <span className="text-gray-500">/{item.installmentTotal}</span>
                             </td>
                             <td className="px-4 py-3.5 text-sm text-center">
@@ -240,12 +240,12 @@ export default function InstallmentsPage() {
                             <td className="px-4 py-3.5 text-sm text-right font-mono text-red-400">
                               {formatKRW(item.installmentRemaining)}
                             </td>
-                            <td className="px-4 py-3.5 text-sm text-center text-gray-300">
+                            <td className="px-4 py-3.5 text-sm text-center text-gray-700 dark:text-gray-300">
                               {formatYearMonth(item.completionDate)}
                             </td>
                             <td className="px-4 py-3.5">
                               <div className="flex items-center gap-2">
-                                <div className="flex-1 bg-gray-800 rounded-full h-2.5 overflow-hidden">
+                                <div className="flex-1 bg-gray-200 dark:bg-gray-800 rounded-full h-2.5 overflow-hidden">
                                   <div
                                     className="h-2.5 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 transition-[width] duration-500"
                                     style={{ width: `${progress}%` }}
@@ -267,7 +267,7 @@ export default function InstallmentsPage() {
 
             {/* 완료된 할부 */}
             {data.completedInstallments.length > 0 && (
-              <div className="bg-gray-900 border border-gray-800 rounded-2xl p-6">
+              <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
                 <button
                   onClick={() => setShowCompleted(!showCompleted)}
                   aria-expanded={showCompleted}
@@ -280,7 +280,7 @@ export default function InstallmentsPage() {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
                       </svg>
                     </div>
-                    <h2 className="text-lg font-semibold text-white">
+                    <h2 className="text-lg font-semibold text-gray-900 dark:text-white">
                       완료된 할부
                       <span className="ml-2 text-sm font-normal text-gray-400">
                         {data.completedInstallments.length}건
@@ -299,10 +299,10 @@ export default function InstallmentsPage() {
                 </button>
 
                 {showCompleted && (
-                  <div className="overflow-x-auto mt-4 pt-4 border-t border-gray-800">
+                  <div className="overflow-x-auto mt-4 pt-4 border-t border-gray-200 dark:border-gray-800">
                     <table className="w-full">
                       <thead>
-                        <tr className="bg-gray-800/50">
+                        <tr className="bg-gray-100 dark:bg-gray-800/50">
                           <th className="text-left text-xs text-gray-400 font-medium px-4 py-3 rounded-l-lg">가맹점</th>
                           <th className="text-center text-xs text-gray-400 font-medium px-4 py-3">할부기간</th>
                           <th className="text-right text-xs text-gray-400 font-medium px-4 py-3">월 납부액</th>
@@ -311,8 +311,8 @@ export default function InstallmentsPage() {
                       </thead>
                       <tbody>
                         {data.completedInstallments.map((item) => (
-                          <tr key={item.id} className="border-b border-gray-800 hover:bg-gray-800/30 transition-colors">
-                            <td className="px-4 py-3 text-sm text-gray-300">{item.description}</td>
+                          <tr key={item.id} className="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800/30 transition-colors">
+                            <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{item.description}</td>
                             <td className="px-4 py-3 text-sm text-center text-gray-400">
                               {item.installmentTotal}개월
                             </td>
