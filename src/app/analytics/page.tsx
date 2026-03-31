@@ -371,7 +371,7 @@ export default function AnalyticsPage() {
                           </div>
                           <div className="ml-8 bg-gray-800 rounded-full h-2 overflow-hidden">
                             <div
-                              className="h-2 rounded-full transition-all"
+                              className="h-2 rounded-full transition-[width]"
                               style={{
                                 width: `${widthPct}%`,
                                 backgroundColor: COLORS[idx % COLORS.length],

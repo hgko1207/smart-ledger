@@ -247,7 +247,7 @@ export default function InstallmentsPage() {
                               <div className="flex items-center gap-2">
                                 <div className="flex-1 bg-gray-800 rounded-full h-2.5 overflow-hidden">
                                   <div
-                                    className="h-2.5 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 transition-all duration-500"
+                                    className="h-2.5 rounded-full bg-gradient-to-r from-blue-600 to-blue-400 transition-[width] duration-500"
                                     style={{ width: `${progress}%` }}
                                   />
                                 </div>

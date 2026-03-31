@@ -393,7 +393,7 @@ export default function ExpensesPage() {
                             >
                               <span className={`w-2 h-2 rounded-full ${CATEGORY_COLORS[tx.category] ?? "bg-gray-400"}`} />
                               <span className="text-gray-300">{tx.category}</span>
-                              <svg className="w-3 h-3 text-gray-600 group-hover:text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                              <svg className="w-3 h-3 text-gray-500 group-hover:text-gray-400 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" />
                               </svg>
                             </button>
@@ -492,7 +492,7 @@ export default function ExpensesPage() {
                       onClick={() => void handleDelete(tx.id)}
                       disabled={deletingId === tx.id}
                       aria-label={`${tx.description} 거래 삭제`}
-                      className="text-gray-600 hover:text-red-400 transition-colors p-1"
+                      className="text-gray-500 hover:text-red-400 transition-colors p-1"
                     >
                       {deletingId === tx.id ? (
                         <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">

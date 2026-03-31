@@ -299,7 +299,7 @@ export default function SettingsPage() {
             </div>
           </div>
           <div className="bg-gray-800 border border-gray-700 rounded-xl p-6 text-center">
-            <svg className="w-10 h-10 text-gray-600 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
+            <svg className="w-10 h-10 text-gray-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true">
               <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
             <p className="text-gray-400 text-sm font-medium">향후 구현 예정입니다</p>
