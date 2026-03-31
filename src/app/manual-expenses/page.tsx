@@ -7,8 +7,9 @@ type ManualCategory =
   | "헌금/기부"
   | "용돈/지원"
   | "계모임/회비"
-  | "대출상환"
-  | "이자"
+  | "주택대출"
+  | "차량대출"
+  | "기타대출"
   | "현금지출"
   | "계좌이체"
   | "기타";
@@ -17,8 +18,9 @@ const CATEGORIES: ManualCategory[] = [
   "헌금/기부",
   "용돈/지원",
   "계모임/회비",
-  "대출상환",
-  "이자",
+  "주택대출",
+  "차량대출",
+  "기타대출",
   "현금지출",
   "계좌이체",
   "기타",
@@ -28,8 +30,9 @@ const CATEGORY_COLORS: Record<string, string> = {
   "헌금/기부": "bg-purple-500/20 text-purple-400",
   "용돈/지원": "bg-pink-500/20 text-pink-400",
   "계모임/회비": "bg-indigo-500/20 text-indigo-400",
-  "대출상환": "bg-red-500/20 text-red-400",
-  "이자": "bg-orange-500/20 text-orange-400",
+  "주택대출": "bg-red-500/20 text-red-400",
+  "차량대출": "bg-orange-500/20 text-orange-400",
+  "기타대출": "bg-amber-500/20 text-amber-400",
   "현금지출": "bg-green-500/20 text-green-400",
   "계좌이체": "bg-cyan-500/20 text-cyan-400",
   "기타": "bg-gray-500/20 text-gray-400",
@@ -225,7 +228,7 @@ export default function ManualExpensesPage() {
   const totalAmount = expenses.reduce((sum, tx) => sum + tx.amount, 0);
   const recurringCount = expenses.filter((tx) => tx.isRecurring === 1).length;
   const loanRepayment = expenses
-    .filter((tx) => tx.category === "대출상환")
+    .filter((tx) => tx.category === "주택대출" || tx.category === "차량대출" || tx.category === "기타대출")
     .reduce((sum, tx) => sum + tx.amount, 0);
 
   return (
@@ -306,7 +309,7 @@ export default function ManualExpensesPage() {
                   <p className="text-sm text-gray-400">대출 상환액</p>
                 </div>
                 <p className="text-2xl font-bold text-yellow-400">{formatKRW(loanRepayment)}</p>
-                <p className="text-xs text-gray-500 mt-1">대출상환 카테고리 합계</p>
+                <p className="text-xs text-gray-500 mt-1">주택/차량/기타 대출 합계</p>
               </div>
             </div>
 
