@@ -16,6 +16,7 @@ import {
 import type { AnalyticsResponse, Insight } from "@/lib/analytics/insights";
 import type { InstallmentsResponse } from "@/app/api/installments/route";
 import { CHART_COLORS as COLORS, TOOLTIP_STYLE } from "@/lib/theme/colors";
+import { formatKRW, getMonthOptions } from "@/lib/format";
 
 interface FixedCostItem {
   description: string;
@@ -29,9 +30,6 @@ interface FixedCostsData {
   totalMonthly: number;
 }
 
-function formatKRW(amount: number): string {
-  return `${amount.toLocaleString("ko-KR")}원`;
-}
 
 function formatAxisKRW(v: number): string {
   if (v >= 10000) return `${(v / 10000).toFixed(0)}만`;
@@ -45,20 +43,6 @@ function tooltipFormatter(
   if (typeof value === "number") return formatKRW(value);
   if (typeof value === "string") return formatKRW(parseInt(value, 10));
   return String(value);
-}
-
-function getMonthOptions(): { year: number; month: number; label: string }[] {
-  const options: { year: number; month: number; label: string }[] = [];
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    options.push({
-      year: d.getFullYear(),
-      month: d.getMonth() + 1,
-      label: `${d.getFullYear()}년 ${d.getMonth() + 1}월`,
-    });
-  }
-  return options;
 }
 
 function insightIcon(type: Insight["type"]): string {
@@ -329,6 +313,10 @@ export default function AnalyticsPage() {
               <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
                 <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">월별 지출 비교</h2>
                 {monthlyBarData.some((d) => d.total > 0) ? (
+                  <div
+                    role="img"
+                    aria-label={`월별 지출 비교 막대 차트. ${monthlyBarData.map((d) => `${d.name} ${d.total.toLocaleString("ko-KR")}원`).join(", ")}`}
+                  >
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={monthlyBarData}>
                       <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
@@ -348,6 +336,7 @@ export default function AnalyticsPage() {
                       <Bar dataKey="total" name="지출" fill="#3b82f6" radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
+                  </div>
                 ) : (
                   <div className="h-[300px] flex items-center justify-center text-gray-500">
                     데이터가 없습니다.
@@ -402,6 +391,10 @@ export default function AnalyticsPage() {
             <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6 mb-8">
               <h2 className="text-lg font-semibold text-gray-900 dark:text-white mb-4">카테고리별 트렌드 (최근 3개월)</h2>
               {trendData.length > 0 && trendCategories.length > 0 ? (
+                <div
+                  role="img"
+                  aria-label={`카테고리별 트렌드 꺾은선 차트. 표시 카테고리: ${trendCategories.join(", ")}`}
+                >
                 <ResponsiveContainer width="100%" height={350}>
                   <LineChart data={trendData}>
                     <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
@@ -432,6 +425,7 @@ export default function AnalyticsPage() {
                     ))}
                   </LineChart>
                 </ResponsiveContainer>
+                </div>
               ) : (
                 <div className="h-[350px] flex items-center justify-center text-gray-500">
                   데이터가 없습니다.

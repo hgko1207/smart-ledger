@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Transaction } from "@/db/schema";
 import { MANUAL_CATEGORY_COLORS as CATEGORY_COLORS } from "@/lib/theme/colors";
+import { formatKRW, formatDate, getMonthOptions } from "@/lib/format";
 
 type ManualCategory =
   | "헌금/기부"
@@ -28,29 +29,6 @@ const CATEGORIES: ManualCategory[] = [
   "계좌이체",
   "기타",
 ];
-
-function formatKRW(amount: number): string {
-  return `${amount.toLocaleString("ko-KR")}원`;
-}
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function getMonthOptions(): { year: number; month: number; label: string }[] {
-  const options: { year: number; month: number; label: string }[] = [];
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    options.push({
-      year: d.getFullYear(),
-      month: d.getMonth() + 1,
-      label: `${d.getFullYear()}년 ${d.getMonth() + 1}월`,
-    });
-  }
-  return options;
-}
 
 export default function ManualExpensesPage() {
   const now = new Date();

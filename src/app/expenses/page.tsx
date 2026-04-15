@@ -3,35 +3,13 @@
 import { useState, useEffect, useCallback } from "react";
 import type { Transaction } from "@/db/schema";
 import { CATEGORY_BG_COLORS as CATEGORY_COLORS } from "@/lib/theme/colors";
+import { formatKRW, formatDate, getMonthOptions } from "@/lib/format";
 
 const CATEGORIES = [
   "식비", "외식", "배달", "식료품/마트", "교통", "고속도로", "주차", "자동차",
   "쇼핑", "패션/뷰티", "의료", "보험", "주거/관리비", "통신", "교육", "구독",
   "여행", "문화/여가", "육아/완구", "생활", "기타",
 ];
-
-function formatKRW(amount: number): string {
-  return `${amount.toLocaleString("ko-KR")}원`;
-}
-
-function formatDate(dateStr: string): string {
-  const d = new Date(dateStr);
-  return `${d.getFullYear()}.${String(d.getMonth() + 1).padStart(2, "0")}.${String(d.getDate()).padStart(2, "0")}`;
-}
-
-function getMonthOptions(): { year: number; month: number; label: string }[] {
-  const options: { year: number; month: number; label: string }[] = [];
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    options.push({
-      year: d.getFullYear(),
-      month: d.getMonth() + 1,
-      label: `${d.getFullYear()}년 ${d.getMonth() + 1}월`,
-    });
-  }
-  return options;
-}
 
 export default function ExpensesPage() {
   const now = new Date();

@@ -14,6 +14,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import { CHART_COLORS as COLORS, TOOLTIP_STYLE } from "@/lib/theme/colors";
+import { formatKRW, getMonthOptions } from "@/lib/format";
 
 interface CategorySummary {
   category: string;
@@ -117,27 +118,8 @@ const CATEGORY_SHORT_NAMES: Record<string, string> = {
   "외식/배달": "외식",
 };
 
-function formatKRW(amount: number): string {
-  return `${amount.toLocaleString("ko-KR")}원`;
-}
-
 function shortenCategory(name: string): string {
   return CATEGORY_SHORT_NAMES[name] ?? name;
-}
-
-// 월 선택 옵션 생성 (최근 12개월)
-function getMonthOptions(): { year: number; month: number; label: string }[] {
-  const options: { year: number; month: number; label: string }[] = [];
-  const now = new Date();
-  for (let i = 0; i < 12; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
-    options.push({
-      year: d.getFullYear(),
-      month: d.getMonth() + 1,
-      label: `${d.getFullYear()}년 ${d.getMonth() + 1}월`,
-    });
-  }
-  return options;
 }
 
 // Tooltip 포맷터
@@ -581,7 +563,11 @@ export default function DashboardPage() {
               {pieData.length > 0 ? (
                 <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
                   {/* 도넛 차트 */}
-                  <div className="shrink-0 aspect-square w-full max-w-[240px]">
+                  <div
+                    className="shrink-0 aspect-square w-full max-w-[240px]"
+                    role="img"
+                    aria-label={`카테고리별 지출 도넛 차트. ${pieData.map((c) => `${c.category} ${c.total.toLocaleString("ko-KR")}원`).join(", ")}`}
+                  >
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie

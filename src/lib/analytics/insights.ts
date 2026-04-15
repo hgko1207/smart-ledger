@@ -1,3 +1,5 @@
+import { formatKRW } from "@/lib/format";
+
 interface MonthlyCategoryData {
   year: number;
   month: number;
@@ -104,10 +106,6 @@ export function generateMemberInsights(
   }
 
   return insights;
-}
-
-function formatKRW(amount: number): string {
-  return `${amount.toLocaleString("ko-KR")}원`;
 }
 
 export interface AnalyticsResponse {
