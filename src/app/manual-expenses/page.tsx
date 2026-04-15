@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Transaction } from "@/db/schema";
+import { MANUAL_CATEGORY_COLORS as CATEGORY_COLORS } from "@/lib/theme/colors";
 
 type ManualCategory =
   | "헌금/기부"
@@ -27,19 +28,6 @@ const CATEGORIES: ManualCategory[] = [
   "계좌이체",
   "기타",
 ];
-
-const CATEGORY_COLORS: Record<string, string> = {
-  "헌금/기부": "bg-purple-500/20 text-purple-400",
-  "용돈/지원": "bg-pink-500/20 text-pink-400",
-  "계모임/회비": "bg-indigo-500/20 text-indigo-400",
-  "주택대출": "bg-red-500/20 text-red-400",
-  "차량대출": "bg-orange-500/20 text-orange-400",
-  "가족대출": "bg-rose-500/20 text-rose-400",
-  "기타대출": "bg-amber-500/20 text-amber-400",
-  "현금지출": "bg-green-500/20 text-green-400",
-  "계좌이체": "bg-cyan-500/20 text-cyan-400",
-  "기타": "bg-gray-500/20 text-gray-400",
-};
 
 function formatKRW(amount: number): string {
   return `${amount.toLocaleString("ko-KR")}원`;

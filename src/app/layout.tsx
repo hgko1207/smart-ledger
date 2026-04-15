@@ -39,7 +39,7 @@ export default function RootLayout({
       <body className="min-h-full bg-white dark:bg-gray-950 text-gray-900 dark:text-white" suppressHydrationWarning>
         <Navigation />
         {/* 데스크탑: 사이드바 너비만큼 왼쪽 패딩 / 모바일: 하단 탭 바 높이만큼 패딩 */}
-        <main className="md:pl-60 pb-20 md:pb-0 min-h-screen">
+        <main className="md:pl-60 pb-[calc(4rem+env(safe-area-inset-bottom))] md:pb-0 min-h-screen">
           {children}
         </main>
       </body>

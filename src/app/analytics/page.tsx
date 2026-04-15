@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import type { AnalyticsResponse, Insight } from "@/lib/analytics/insights";
 import type { InstallmentsResponse } from "@/app/api/installments/route";
+import { CHART_COLORS as COLORS, TOOLTIP_STYLE } from "@/lib/theme/colors";
 
 interface FixedCostItem {
   description: string;
@@ -27,18 +28,6 @@ interface FixedCostsData {
   fixedCosts: FixedCostItem[];
   totalMonthly: number;
 }
-
-const COLORS = [
-  "#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6",
-  "#ec4899", "#06b6d4", "#f97316", "#84cc16", "#6366f1",
-];
-
-const TOOLTIP_STYLE = {
-  backgroundColor: "#111827",
-  border: "1px solid #1f2937",
-  borderRadius: "8px",
-  color: "#fff",
-};
 
 function formatKRW(amount: number): string {
   return `${amount.toLocaleString("ko-KR")}원`;

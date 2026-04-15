@@ -13,6 +13,7 @@ import {
   Tooltip,
   ResponsiveContainer,
 } from "recharts";
+import { CHART_COLORS as COLORS, TOOLTIP_STYLE } from "@/lib/theme/colors";
 
 interface CategorySummary {
   category: string;
@@ -101,12 +102,6 @@ function generateInsight(
   const top = current.reduce((a, b) => (a.total > b.total ? a : b));
   return `이번 달은 ${top.category}에 가장 많이 지출했어요 (${top.total.toLocaleString("ko-KR")}원)`;
 }
-
-const COLORS = [
-  "#3b82f6", "#ef4444", "#10b981", "#f59e0b", "#8b5cf6",
-  "#ec4899", "#06b6d4", "#f97316", "#84cc16", "#6366f1",
-  "#14b8a6", "#e11d48", "#a855f7", "#0ea5e9", "#d946ef",
-];
 
 const CATEGORY_SHORT_NAMES: Record<string, string> = {
   "식료품/마트": "마트",
@@ -586,7 +581,7 @@ export default function DashboardPage() {
               {pieData.length > 0 ? (
                 <div className="flex flex-col md:flex-row items-center md:items-start gap-8">
                   {/* 도넛 차트 */}
-                  <div className="shrink-0 w-[240px] h-[240px]">
+                  <div className="shrink-0 aspect-square w-full max-w-[240px]">
                     <ResponsiveContainer width="100%" height="100%">
                       <PieChart>
                         <Pie
@@ -609,12 +604,7 @@ export default function DashboardPage() {
                         </Pie>
                         <Tooltip
                           formatter={tooltipFormatter}
-                          contentStyle={{
-                            backgroundColor: "#111827",
-                            border: "1px solid #1f2937",
-                            borderRadius: "8px",
-                            color: "#fff",
-                          }}
+                          contentStyle={TOOLTIP_STYLE}
                         />
                       </PieChart>
                     </ResponsiveContainer>

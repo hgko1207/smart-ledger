@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Income, Saving } from "@/db/schema";
+import { INCOME_SOURCE_COLORS as SOURCE_COLORS } from "@/lib/theme/colors";
 
 type IncomeSource = "salary" | "bonus" | "freelance" | "tax_refund" | "investment" | "allowance" | "other";
 
@@ -13,16 +14,6 @@ const SOURCE_LABELS: Record<string, string> = {
   investment: "투자수익",
   allowance: "용돈/지원금",
   other: "기타",
-};
-
-const SOURCE_COLORS: Record<string, string> = {
-  salary: "bg-blue-500/20 text-blue-400",
-  bonus: "bg-green-500/20 text-green-400",
-  freelance: "bg-purple-500/20 text-purple-400",
-  tax_refund: "bg-orange-500/20 text-orange-400",
-  investment: "bg-cyan-500/20 text-cyan-400",
-  allowance: "bg-pink-500/20 text-pink-400",
-  other: "bg-gray-500/20 text-gray-400",
 };
 
 function formatKRW(amount: number): string {

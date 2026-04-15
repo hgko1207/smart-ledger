@@ -412,12 +412,12 @@ export default function Navigation() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`flex flex-col items-center gap-1 px-2 py-1.5 min-w-0 transition-colors ${
+                className={`flex flex-col items-center justify-center gap-1 px-2 min-h-[48px] min-w-0 transition-colors ${
                   active ? "text-blue-500" : "text-gray-400 dark:text-gray-500"
                 }`}
               >
                 {item.icon}
-                <span className="text-[10px] font-medium truncate">
+                <span className="text-xs font-medium truncate">
                   {item.label}
                 </span>
               </Link>

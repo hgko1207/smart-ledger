@@ -2,36 +2,13 @@
 
 import { useState, useEffect, useCallback } from "react";
 import type { Transaction } from "@/db/schema";
+import { CATEGORY_BG_COLORS as CATEGORY_COLORS } from "@/lib/theme/colors";
 
 const CATEGORIES = [
   "식비", "외식", "배달", "식료품/마트", "교통", "고속도로", "주차", "자동차",
   "쇼핑", "패션/뷰티", "의료", "보험", "주거/관리비", "통신", "교육", "구독",
   "여행", "문화/여가", "육아/완구", "생활", "기타",
 ];
-
-const CATEGORY_COLORS: Record<string, string> = {
-  "식비": "bg-orange-400",
-  "외식": "bg-amber-400",
-  "배달": "bg-red-400",
-  "식료품/마트": "bg-orange-300",
-  "교통": "bg-blue-400",
-  "고속도로": "bg-blue-300",
-  "주차": "bg-sky-400",
-  "자동차": "bg-yellow-400",
-  "쇼핑": "bg-pink-400",
-  "패션/뷰티": "bg-rose-400",
-  "의료": "bg-red-500",
-  "보험": "bg-red-300",
-  "주거/관리비": "bg-violet-400",
-  "통신": "bg-indigo-400",
-  "교육": "bg-cyan-400",
-  "구독": "bg-purple-400",
-  "여행": "bg-emerald-400",
-  "문화/여가": "bg-lime-400",
-  "육아/완구": "bg-green-400",
-  "생활": "bg-teal-400",
-  "기타": "bg-gray-400",
-};
 
 function formatKRW(amount: number): string {
   return `${amount.toLocaleString("ko-KR")}원`;
