@@ -71,3 +71,11 @@ export const TOOLTIP_STYLE = {
 export const CHART_AXIS_COLOR = "#6b7280";
 export const CHART_GRID_COLOR = "#1f2937";
 export const CHART_PRIMARY_BAR = "#3b82f6";
+
+// 인사이트 카드 색상 — 배지 표준(text-*-300 bg-*-500/20)과 동일 톤
+export const INSIGHT_COLORS = {
+  increase: "text-red-300 bg-red-500/20 border-red-500/20",
+  decrease: "text-green-300 bg-green-500/20 border-green-500/20",
+  saving_tip: "text-yellow-300 bg-yellow-500/20 border-yellow-500/20",
+  info: "text-blue-300 bg-blue-500/20 border-blue-500/20",
+} as const;

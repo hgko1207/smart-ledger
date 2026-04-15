@@ -290,17 +290,25 @@ export default function ExpensesPage() {
                 <table className="w-full">
                   <thead>
                     <tr className="bg-gray-100 dark:bg-gray-800/50 border-b border-gray-200 dark:border-gray-800">
-                      <th scope="col" className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 select-none" onClick={() => handleSort("date")}>
-                        날짜 {sortKey === "date" ? (sortDir === "desc" ? "↓" : "↑") : ""}
+                      <th scope="col" aria-sort={sortKey === "date" ? (sortDir === "desc" ? "descending" : "ascending") : "none"} className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 select-none">
+                        <button type="button" onClick={() => handleSort("date")} aria-label={`날짜 기준 정렬 (현재 ${sortKey === "date" ? (sortDir === "desc" ? "내림차순" : "오름차순") : "정렬 안 됨"})`} className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-gray-600 dark:hover:text-gray-200">
+                          날짜 {sortKey === "date" ? (sortDir === "desc" ? "↓" : "↑") : ""}
+                        </button>
                       </th>
-                      <th scope="col" className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 select-none" onClick={() => handleSort("description")}>
-                        가맹점 {sortKey === "description" ? (sortDir === "desc" ? "↓" : "↑") : ""}
+                      <th scope="col" aria-sort={sortKey === "description" ? (sortDir === "desc" ? "descending" : "ascending") : "none"} className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 select-none">
+                        <button type="button" onClick={() => handleSort("description")} aria-label={`가맹점 기준 정렬 (현재 ${sortKey === "description" ? (sortDir === "desc" ? "내림차순" : "오름차순") : "정렬 안 됨"})`} className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-gray-600 dark:hover:text-gray-200">
+                          가맹점 {sortKey === "description" ? (sortDir === "desc" ? "↓" : "↑") : ""}
+                        </button>
                       </th>
-                      <th scope="col" className="text-right text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 select-none" onClick={() => handleSort("amount")}>
-                        금액 {sortKey === "amount" ? (sortDir === "desc" ? "↓" : "↑") : ""}
+                      <th scope="col" aria-sort={sortKey === "amount" ? (sortDir === "desc" ? "descending" : "ascending") : "none"} className="text-right text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 select-none">
+                        <button type="button" onClick={() => handleSort("amount")} aria-label={`금액 기준 정렬 (현재 ${sortKey === "amount" ? (sortDir === "desc" ? "내림차순" : "오름차순") : "정렬 안 됨"})`} className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-gray-600 dark:hover:text-gray-200 ml-auto">
+                          금액 {sortKey === "amount" ? (sortDir === "desc" ? "↓" : "↑") : ""}
+                        </button>
                       </th>
-                      <th scope="col" className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 cursor-pointer hover:text-gray-600 dark:hover:text-gray-200 select-none" onClick={() => handleSort("category")}>
-                        카테고리 {sortKey === "category" ? (sortDir === "desc" ? "↓" : "↑") : ""}
+                      <th scope="col" aria-sort={sortKey === "category" ? (sortDir === "desc" ? "descending" : "ascending") : "none"} className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5 select-none">
+                        <button type="button" onClick={() => handleSort("category")} aria-label={`카테고리 기준 정렬 (현재 ${sortKey === "category" ? (sortDir === "desc" ? "내림차순" : "오름차순") : "정렬 안 됨"})`} className="inline-flex items-center gap-1 uppercase tracking-wider hover:text-gray-600 dark:hover:text-gray-200">
+                          카테고리 {sortKey === "category" ? (sortDir === "desc" ? "↓" : "↑") : ""}
+                        </button>
                       </th>
                       <th scope="col" className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5">카드</th>
                       <th scope="col" className="text-left text-xs font-medium text-gray-400 uppercase tracking-wider px-5 py-3.5">구분</th>

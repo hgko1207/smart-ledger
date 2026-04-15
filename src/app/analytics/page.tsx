@@ -15,7 +15,7 @@ import {
 } from "recharts";
 import type { AnalyticsResponse, Insight } from "@/lib/analytics/insights";
 import type { InstallmentsResponse } from "@/app/api/installments/route";
-import { CHART_COLORS as COLORS, TOOLTIP_STYLE, CHART_AXIS_COLOR, CHART_GRID_COLOR, CHART_PRIMARY_BAR } from "@/lib/theme/colors";
+import { CHART_COLORS as COLORS, TOOLTIP_STYLE, CHART_AXIS_COLOR, CHART_GRID_COLOR, CHART_PRIMARY_BAR, INSIGHT_COLORS } from "@/lib/theme/colors";
 import { formatKRW, getMonthOptions } from "@/lib/format";
 import { PageSkeleton } from "@/components/ui/Skeleton";
 
@@ -60,16 +60,7 @@ function insightIcon(type: Insight["type"]): string {
 }
 
 function insightColor(type: Insight["type"]): string {
-  switch (type) {
-    case "increase":
-      return "text-red-400 bg-red-500/10 border-red-500/20";
-    case "decrease":
-      return "text-green-400 bg-green-500/10 border-green-500/20";
-    case "saving_tip":
-      return "text-yellow-400 bg-yellow-500/10 border-yellow-500/20";
-    case "info":
-      return "text-blue-400 bg-blue-500/10 border-blue-500/20";
-  }
+  return INSIGHT_COLORS[type];
 }
 
 export default function AnalyticsPage() {
