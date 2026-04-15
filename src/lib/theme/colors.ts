@@ -38,26 +38,26 @@ export const CATEGORY_BG_COLORS: Record<string, string> = {
 };
 
 export const INCOME_SOURCE_COLORS: Record<string, string> = {
-  salary: "bg-blue-500/20 text-blue-400",
-  bonus: "bg-green-500/20 text-green-400",
-  freelance: "bg-purple-500/20 text-purple-400",
-  tax_refund: "bg-orange-500/20 text-orange-400",
-  investment: "bg-cyan-500/20 text-cyan-400",
-  allowance: "bg-pink-500/20 text-pink-400",
-  other: "bg-gray-500/20 text-gray-400",
+  salary: "bg-blue-500/20 text-blue-300",
+  bonus: "bg-green-500/20 text-green-300",
+  freelance: "bg-purple-500/20 text-purple-300",
+  tax_refund: "bg-orange-500/20 text-orange-300",
+  investment: "bg-cyan-500/20 text-cyan-300",
+  allowance: "bg-pink-500/20 text-pink-300",
+  other: "bg-gray-500/20 text-gray-300",
 };
 
 export const MANUAL_CATEGORY_COLORS: Record<string, string> = {
-  "헌금/기부": "bg-purple-500/20 text-purple-400",
-  "용돈/지원": "bg-pink-500/20 text-pink-400",
-  "계모임/회비": "bg-indigo-500/20 text-indigo-400",
-  "주택대출": "bg-red-500/20 text-red-400",
-  "차량대출": "bg-orange-500/20 text-orange-400",
-  "가족대출": "bg-rose-500/20 text-rose-400",
-  "기타대출": "bg-amber-500/20 text-amber-400",
-  "현금지출": "bg-green-500/20 text-green-400",
-  "계좌이체": "bg-cyan-500/20 text-cyan-400",
-  "기타": "bg-gray-500/20 text-gray-400",
+  "헌금/기부": "bg-purple-500/20 text-purple-300",
+  "용돈/지원": "bg-pink-500/20 text-pink-300",
+  "계모임/회비": "bg-indigo-500/20 text-indigo-300",
+  "주택대출": "bg-red-500/20 text-red-300",
+  "차량대출": "bg-orange-500/20 text-orange-300",
+  "가족대출": "bg-rose-500/20 text-rose-300",
+  "기타대출": "bg-amber-500/20 text-amber-300",
+  "현금지출": "bg-green-500/20 text-green-300",
+  "계좌이체": "bg-cyan-500/20 text-cyan-300",
+  "기타": "bg-gray-500/20 text-gray-300",
 };
 
 export const TOOLTIP_STYLE = {
@@ -66,3 +66,8 @@ export const TOOLTIP_STYLE = {
   borderRadius: "8px",
   color: "#fff",
 } as const;
+
+// Recharts 축/격자/기본 bar 색상 (다크모드 전제)
+export const CHART_AXIS_COLOR = "#6b7280";
+export const CHART_GRID_COLOR = "#1f2937";
+export const CHART_PRIMARY_BAR = "#3b82f6";

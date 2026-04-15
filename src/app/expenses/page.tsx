@@ -360,8 +360,8 @@ export default function ExpensesPage() {
                         <td className="px-5 py-3.5 text-sm">
                           <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-medium ${
                             tx.memberType === "본인"
-                              ? "bg-blue-500/15 text-blue-400"
-                              : "bg-purple-500/15 text-purple-400"
+                              ? "bg-blue-500/20 text-blue-300"
+                              : "bg-purple-500/20 text-purple-300"
                           }`}>
                             {tx.memberType}
                           </span>
@@ -437,8 +437,8 @@ export default function ExpensesPage() {
                       )}
                       <span className={`inline-block px-2 py-0.5 rounded-md text-xs font-medium ${
                         tx.memberType === "본인"
-                          ? "bg-blue-500/15 text-blue-400"
-                          : "bg-purple-500/15 text-purple-400"
+                          ? "bg-blue-500/20 text-blue-300"
+                          : "bg-purple-500/20 text-purple-300"
                       }`}>
                         {tx.memberType}
                       </span>

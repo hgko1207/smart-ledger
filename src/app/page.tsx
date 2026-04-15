@@ -15,6 +15,7 @@ import {
 } from "recharts";
 import { CHART_COLORS as COLORS, TOOLTIP_STYLE } from "@/lib/theme/colors";
 import { formatKRW, getMonthOptions } from "@/lib/format";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 interface CategorySummary {
   category: string;
@@ -225,11 +226,7 @@ export default function DashboardPage() {
   }, [data]);
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-gray-400">로딩 중...</p>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   if (error) {
@@ -468,7 +465,7 @@ export default function DashboardPage() {
                         <tr key={fc.description} className="border-b border-gray-200 dark:border-gray-800">
                           <td className="px-4 py-2.5 text-sm text-gray-900 dark:text-white">{fc.description}</td>
                           <td className="px-4 py-2.5 text-sm">
-                            <span className="inline-block px-2 py-0.5 rounded bg-purple-500/15 text-purple-400 text-xs border border-purple-500/20">
+                            <span className="inline-block px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-xs border border-purple-500/20">
                               {fc.category}
                             </span>
                           </td>
@@ -644,7 +641,7 @@ export default function DashboardPage() {
                               )}
                             </span>
                             {budget && budgetPct >= 100 && (
-                              <span className="shrink-0 inline-block px-1.5 py-0.5 rounded text-xs font-bold bg-red-500/15 text-red-400 border border-red-500/20">
+                              <span className="shrink-0 inline-block px-1.5 py-0.5 rounded text-xs font-bold bg-red-500/20 text-red-300 border border-red-500/20">
                                 초과!
                               </span>
                             )}

@@ -495,7 +495,7 @@ export default function ManualExpensesPage() {
                             </td>
                             <td className="px-4 py-3 text-sm">
                               <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                CATEGORY_COLORS[tx.category] ?? "bg-gray-500/20 text-gray-400"
+                                CATEGORY_COLORS[tx.category] ?? "bg-gray-500/20 text-gray-300"
                               }`}>
                                 {tx.category}
                               </span>

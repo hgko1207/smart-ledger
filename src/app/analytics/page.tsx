@@ -15,8 +15,9 @@ import {
 } from "recharts";
 import type { AnalyticsResponse, Insight } from "@/lib/analytics/insights";
 import type { InstallmentsResponse } from "@/app/api/installments/route";
-import { CHART_COLORS as COLORS, TOOLTIP_STYLE } from "@/lib/theme/colors";
+import { CHART_COLORS as COLORS, TOOLTIP_STYLE, CHART_AXIS_COLOR, CHART_GRID_COLOR, CHART_PRIMARY_BAR } from "@/lib/theme/colors";
 import { formatKRW, getMonthOptions } from "@/lib/format";
+import { PageSkeleton } from "@/components/ui/Skeleton";
 
 interface FixedCostItem {
   description: string;
@@ -199,11 +200,7 @@ export default function AnalyticsPage() {
   }
 
   if (loading) {
-    return (
-      <div className="flex items-center justify-center min-h-[60vh]">
-        <p className="text-gray-400">로딩 중...</p>
-      </div>
-    );
+    return <PageSkeleton />;
   }
 
   if (error) {
@@ -319,11 +316,11 @@ export default function AnalyticsPage() {
                   >
                   <ResponsiveContainer width="100%" height={300}>
                     <BarChart data={monthlyBarData}>
-                      <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-                      <XAxis dataKey="name" stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
+                      <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
+                      <XAxis dataKey="name" stroke={CHART_AXIS_COLOR} fontSize={12} tickLine={false} axisLine={false} />
                       <YAxis
                         tickFormatter={formatAxisKRW}
-                        stroke="#6b7280"
+                        stroke={CHART_AXIS_COLOR}
                         fontSize={12}
                         tickLine={false}
                         axisLine={false}
@@ -333,7 +330,7 @@ export default function AnalyticsPage() {
                         contentStyle={TOOLTIP_STYLE}
                         cursor={{ fill: "rgba(255,255,255,0.03)" }}
                       />
-                      <Bar dataKey="total" name="지출" fill="#3b82f6" radius={[6, 6, 0, 0]} />
+                      <Bar dataKey="total" name="지출" fill={CHART_PRIMARY_BAR} radius={[6, 6, 0, 0]} />
                     </BarChart>
                   </ResponsiveContainer>
                   </div>
@@ -397,11 +394,11 @@ export default function AnalyticsPage() {
                 >
                 <ResponsiveContainer width="100%" height={350}>
                   <LineChart data={trendData}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="#1f2937" />
-                    <XAxis dataKey="name" stroke="#6b7280" fontSize={12} tickLine={false} axisLine={false} />
+                    <CartesianGrid strokeDasharray="3 3" stroke={CHART_GRID_COLOR} />
+                    <XAxis dataKey="name" stroke={CHART_AXIS_COLOR} fontSize={12} tickLine={false} axisLine={false} />
                     <YAxis
                       tickFormatter={formatAxisKRW}
-                      stroke="#6b7280"
+                      stroke={CHART_AXIS_COLOR}
                       fontSize={12}
                       tickLine={false}
                       axisLine={false}
@@ -515,7 +512,7 @@ export default function AnalyticsPage() {
                         <tr key={fc.description} className="border-b border-gray-200 dark:border-gray-800 hover:bg-gray-100 dark:hover:bg-gray-800/30 transition-colors">
                           <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">{fc.description}</td>
                           <td className="px-4 py-3 text-sm">
-                            <span className="inline-block px-2 py-0.5 rounded bg-purple-500/15 text-purple-400 text-xs border border-purple-500/20">
+                            <span className="inline-block px-2 py-0.5 rounded bg-purple-500/20 text-purple-300 text-xs border border-purple-500/20">
                               {fc.category}
                             </span>
                           </td>

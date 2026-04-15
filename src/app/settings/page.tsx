@@ -386,7 +386,7 @@ export default function SettingsPage() {
                         <code className="bg-gray-200 dark:bg-gray-800 border border-gray-300 dark:border-gray-700 px-2 py-0.5 rounded text-yellow-600 dark:text-yellow-300 text-xs">{rule.pattern}</code>
                       </td>
                       <td className="px-4 py-3 text-sm">
-                        <span className="inline-block px-2 py-0.5 rounded bg-blue-500/15 text-blue-400 text-xs border border-blue-500/20">
+                        <span className="inline-block px-2 py-0.5 rounded bg-blue-500/20 text-blue-300 text-xs border border-blue-500/20">
                           {rule.category}
                         </span>
                       </td>

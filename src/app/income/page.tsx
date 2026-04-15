@@ -603,7 +603,7 @@ export default function IncomePage() {
                             <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{formatDate(inc.date)}</td>
                             <td className="px-4 py-3 text-sm">
                               <span className={`inline-block px-2.5 py-0.5 rounded-full text-xs font-medium ${
-                                SOURCE_COLORS[inc.source] ?? "bg-gray-500/20 text-gray-400"
+                                SOURCE_COLORS[inc.source] ?? "bg-gray-500/20 text-gray-300"
                               }`}>
                                 {SOURCE_LABELS[inc.source] ?? inc.source}
                               </span>
@@ -826,7 +826,7 @@ export default function IncomePage() {
                               <span className="font-medium text-gray-900 dark:text-white">{s.name}</span>
                               <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${
                                 isActive
-                                  ? "bg-green-500/15 text-green-400 border border-green-500/20"
+                                  ? "bg-green-500/20 text-green-300 border border-green-500/20"
                                   : "bg-gray-500/15 text-gray-500 border border-gray-600/20"
                               }`}>
                                 {isActive ? "진행중" : "완료"}
