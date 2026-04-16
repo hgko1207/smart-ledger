@@ -502,7 +502,7 @@ export default function ManualExpensesPage() {
                             </td>
                             <td className="px-4 py-3 text-center text-sm">
                               {tx.isRecurring === 1 && (
-                                <span title="매월 반복" className="text-blue-400">&#x1F504;</span>
+                                <span role="img" aria-label="매월 반복" className="text-blue-400">&#x1F504;</span>
                               )}
                             </td>
                             <td className="px-4 py-3 text-center" onClick={(e) => e.stopPropagation()}>

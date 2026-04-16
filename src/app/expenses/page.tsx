@@ -352,7 +352,7 @@ export default function ExpensesPage() {
                             <button
                               onClick={() => setEditingId(tx.id)}
                               className="inline-flex items-center gap-2 px-2.5 py-1 rounded-lg hover:bg-gray-200 dark:hover:bg-gray-800 text-sm transition-colors"
-                              title="클릭하여 카테고리 변경"
+                              aria-label={`카테고리 변경 (현재: ${tx.category})`}
                             >
                               <span className={`w-2 h-2 rounded-full ${CATEGORY_COLORS[tx.category] ?? "bg-gray-400"}`} />
                               <span className="text-gray-600 dark:text-gray-300">{tx.category}</span>
@@ -437,7 +437,7 @@ export default function ExpensesPage() {
                         <button
                           onClick={() => setEditingId(tx.id)}
                           className="inline-flex items-center gap-1.5 px-2 py-1 rounded-lg bg-gray-200 dark:bg-gray-800/50 text-xs text-gray-600 dark:text-gray-300 transition-colors"
-                          title="클릭하여 카테고리 변경"
+                          aria-label={`카테고리 변경 (현재: ${tx.category})`}
                         >
                           <span className={`w-1.5 h-1.5 rounded-full ${CATEGORY_COLORS[tx.category] ?? "bg-gray-400"}`} />
                           {tx.category}
