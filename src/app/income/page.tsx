@@ -87,8 +87,8 @@ export default function IncomePage() {
     setError("");
     try {
       const [incomeRes, savingsRes] = await Promise.all([
-        fetch(`/api/income?year=${selectedYear}&month=${selectedMonth}`),
-        fetch("/api/savings"),
+        fetch(`/api/income?year=${selectedYear}&month=${selectedMonth}`, { cache: "no-store" }),
+        fetch("/api/savings", { cache: "no-store" }),
       ]);
 
       if (!incomeRes.ok) {
@@ -147,7 +147,17 @@ export default function IncomePage() {
       setIncomeAmount("");
       setIncomeDesc("");
       setShowIncomeForm(false);
-      void fetchData();
+
+      // 입력 날짜의 월이 현재 탭과 다르면 자동 이동 (useEffect가 fetchData 재호출)
+      const d = new Date(incomeDate);
+      const submittedYear = d.getFullYear();
+      const submittedMonth = d.getMonth() + 1;
+      if (submittedYear !== selectedYear || submittedMonth !== selectedMonth) {
+        setSelectedYear(submittedYear);
+        setSelectedMonth(submittedMonth);
+      } else {
+        void fetchData();
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "수입 추가에 실패했습니다.";
@@ -207,7 +217,17 @@ export default function IncomePage() {
         throw new Error(errData.error);
       }
       setEditingIncomeId(null);
-      void fetchData();
+
+      // 수정 후 날짜의 월이 현재 탭과 다르면 자동 이동
+      const d = new Date(editIncomeData.date);
+      const editedYear = d.getFullYear();
+      const editedMonth = d.getMonth() + 1;
+      if (editedYear !== selectedYear || editedMonth !== selectedMonth) {
+        setSelectedYear(editedYear);
+        setSelectedMonth(editedMonth);
+      } else {
+        void fetchData();
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "수입 수정에 실패했습니다.";
