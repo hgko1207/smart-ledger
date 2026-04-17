@@ -152,9 +152,9 @@ export default function DashboardPage() {
     setError("");
     try {
       const [dashRes, installRes, fixedRes] = await Promise.all([
-        fetch(`/api/dashboard?year=${selectedYear}&month=${selectedMonth}`),
-        fetch(`/api/installments?year=${selectedYear}&month=${selectedMonth}`),
-        fetch(`/api/fixed-costs?year=${selectedYear}&month=${selectedMonth}`),
+        fetch(`/api/dashboard?year=${selectedYear}&month=${selectedMonth}`, { cache: "no-store" }),
+        fetch(`/api/installments?year=${selectedYear}&month=${selectedMonth}`, { cache: "no-store" }),
+        fetch(`/api/fixed-costs?year=${selectedYear}&month=${selectedMonth}`, { cache: "no-store" }),
       ]);
       if (!dashRes.ok) {
         const errData = (await dashRes.json()) as { error: string };

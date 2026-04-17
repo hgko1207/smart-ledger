@@ -46,7 +46,8 @@ export default function InstallmentsPage() {
     setError("");
     try {
       const res = await fetch(
-        `/api/installments?year=${selectedYear}&month=${selectedMonth}`
+        `/api/installments?year=${selectedYear}&month=${selectedMonth}`,
+        { cache: "no-store" }
       );
       if (!res.ok) {
         const errData = (await res.json()) as { error: string };

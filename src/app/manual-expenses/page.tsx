@@ -67,7 +67,8 @@ export default function ManualExpensesPage() {
     setError("");
     try {
       const res = await fetch(
-        `/api/manual-expenses?year=${selectedYear}&month=${selectedMonth}`
+        `/api/manual-expenses?year=${selectedYear}&month=${selectedMonth}`,
+        { cache: "no-store" }
       );
       if (!res.ok) {
         const errData = (await res.json()) as { error: string };
@@ -119,7 +120,16 @@ export default function ManualExpensesPage() {
       setFormAmount("");
       setFormRecurring(false);
       setShowForm(false);
-      void fetchData();
+
+      const d = new Date(formDate);
+      const submittedYear = d.getFullYear();
+      const submittedMonth = d.getMonth() + 1;
+      if (submittedYear !== selectedYear || submittedMonth !== selectedMonth) {
+        setSelectedYear(submittedYear);
+        setSelectedMonth(submittedMonth);
+      } else {
+        void fetchData();
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "지출 추가에 실패했습니다.";
@@ -183,7 +193,16 @@ export default function ManualExpensesPage() {
         throw new Error(errData.error);
       }
       setEditingId(null);
-      void fetchData();
+
+      const d = new Date(editData.date);
+      const editedYear = d.getFullYear();
+      const editedMonth = d.getMonth() + 1;
+      if (editedYear !== selectedYear || editedMonth !== selectedMonth) {
+        setSelectedYear(editedYear);
+        setSelectedMonth(editedMonth);
+      } else {
+        void fetchData();
+      }
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "지출 수정에 실패했습니다.";

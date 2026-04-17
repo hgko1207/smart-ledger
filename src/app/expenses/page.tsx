@@ -48,7 +48,7 @@ export default function ExpensesPage() {
       if (categoryFilter) params.set("category", categoryFilter);
       if (memberFilter) params.set("memberType", memberFilter);
 
-      const res = await fetch(`/api/transactions?${params.toString()}`);
+      const res = await fetch(`/api/transactions?${params.toString()}`, { cache: "no-store" });
       if (!res.ok) {
         const errData = (await res.json()) as { error: string };
         throw new Error(errData.error);

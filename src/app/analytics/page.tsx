@@ -81,9 +81,9 @@ export default function AnalyticsPage() {
     setError("");
     try {
       const [analyticsRes, installRes, fixedRes] = await Promise.all([
-        fetch(`/api/analytics?year=${selectedYear}&month=${selectedMonth}`),
-        fetch(`/api/installments?year=${selectedYear}&month=${selectedMonth}`),
-        fetch(`/api/fixed-costs?year=${selectedYear}&month=${selectedMonth}`),
+        fetch(`/api/analytics?year=${selectedYear}&month=${selectedMonth}`, { cache: "no-store" }),
+        fetch(`/api/installments?year=${selectedYear}&month=${selectedMonth}`, { cache: "no-store" }),
+        fetch(`/api/fixed-costs?year=${selectedYear}&month=${selectedMonth}`, { cache: "no-store" }),
       ]);
       if (!analyticsRes.ok) {
         const errData = (await analyticsRes.json()) as { error: string };
