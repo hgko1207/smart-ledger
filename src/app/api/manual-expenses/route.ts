@@ -62,10 +62,84 @@ export async function GET(request: Request) {
 }
 
 /**
- * POST: 새 수동 지출 추가
+ * POST: 새 수동 지출 추가 또는 반복 항목 일괄 복사
  */
 export async function POST(request: Request) {
   try {
+    const url = new URL(request.url);
+    const action = url.searchParams.get("action");
+
+    // 반복 항목을 이번 달로 일괄 복사
+    if (action === "copy-recurring") {
+      const targetYear = parseInt(url.searchParams.get("year") ?? "", 10);
+      const targetMonth = parseInt(url.searchParams.get("month") ?? "", 10);
+      if (!targetYear || !targetMonth) {
+        return NextResponse.json({ error: "year, month 파라미터가 필요합니다." }, { status: 400 });
+      }
+
+      // 모든 반복 항목 조회 (월 무관)
+      const recurring = await db
+        .select()
+        .from(transactions)
+        .where(and(eq(transactions.cardCompany, "manual"), eq(transactions.isRecurring, 1)));
+
+      // 이번 달에 이미 있는 반복 항목 확인 (설명+금액 기준)
+      const existing = await db
+        .select()
+        .from(transactions)
+        .where(and(
+          eq(transactions.cardCompany, "manual"),
+          eq(transactions.year, targetYear),
+          eq(transactions.month, targetMonth),
+        ));
+
+      const existingKeys = new Set(
+        existing.map((tx) => `${tx.description}|${tx.amount}`)
+      );
+
+      // 반복 항목도 설명+금액 기준으로 중복 제거 (1월, 2월에 같은 항목 → 1건만)
+      const seenRecurring = new Set<string>();
+      const uniqueRecurring = recurring.filter((tx) => {
+        const key = `${tx.description}|${tx.amount}`;
+        if (seenRecurring.has(key)) return false;
+        seenRecurring.add(key);
+        return true;
+      });
+
+      const now = new Date().toISOString();
+      const dateStr = `${targetYear}-${String(targetMonth).padStart(2, "0")}-01`;
+      let copied = 0;
+
+      for (const tx of uniqueRecurring) {
+        const key = `${tx.description}|${tx.amount}`;
+        if (existingKeys.has(key)) continue; // 이미 있으면 스킵
+
+        await db.insert(transactions).values({
+          id: crypto.randomUUID(),
+          date: dateStr,
+          description: tx.description,
+          amount: tx.amount,
+          category: tx.category,
+          cardCompany: "manual",
+          cardName: "",
+          memberType: tx.memberType,
+          originalCategory: null,
+          customCategory: null,
+          month: targetMonth,
+          year: targetYear,
+          statementFile: null,
+          installmentTotal: null,
+          installmentCurrent: null,
+          installmentRemaining: null,
+          isRecurring: 1,
+          createdAt: now,
+        });
+        copied++;
+      }
+
+      return NextResponse.json({ success: true, copied });
+    }
+
     const body = (await request.json()) as ManualExpenseInput;
 
     if (!body.date || !body.description || !body.amount) {

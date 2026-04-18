@@ -243,6 +243,38 @@ export default function ManualExpensesPage() {
     }
   }
 
+  const [copyingRecurring, setCopyingRecurring] = useState(false);
+
+  async function handleCopyRecurring() {
+    if (!confirm(`반복 항목을 ${selectedYear}년 ${selectedMonth}월에 일괄 추가합니다. 이미 있는 항목은 건너뜁니다.`)) return;
+    setCopyingRecurring(true);
+    try {
+      const res = await fetch(
+        `/api/manual-expenses?action=copy-recurring&year=${selectedYear}&month=${selectedMonth}`,
+        { method: "POST" }
+      );
+      if (!res.ok) {
+        const errData = (await res.json()) as { error: string };
+        throw new Error(errData.error);
+      }
+      const result = (await res.json()) as { copied: number };
+      await fetchData();
+      // alert은 렌더링 후 표시 (UI 업데이트 차단 방지)
+      setTimeout(() => {
+        if (result.copied > 0) {
+          alert(`${result.copied}건의 반복 항목이 추가되었습니다.`);
+        } else {
+          alert("이미 모든 반복 항목이 등록되어 있습니다.");
+        }
+      }, 100);
+    } catch (err) {
+      const message = err instanceof Error ? err.message : "반복 항목 복사에 실패했습니다.";
+      alert(message);
+    } finally {
+      setCopyingRecurring(false);
+    }
+  }
+
   // 요약 계산
   const totalAmount = expenses.reduce((sum, tx) => sum + tx.amount, 0);
   const recurringCount = expenses.filter((tx) => tx.isRecurring === 1).length;
@@ -339,17 +371,27 @@ export default function ManualExpensesPage() {
                   <h2 className="text-lg font-semibold text-gray-900 dark:text-white">지출 목록</h2>
                   <p className="text-xs text-gray-500 mt-0.5">클릭하여 인라인 편집</p>
                 </div>
-                <button
-                  onClick={() => setShowForm(!showForm)}
-                  aria-label={showForm ? "지출 추가 폼 닫기" : "새 지출 추가"}
-                  className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
-                    showForm
-                      ? "bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
-                      : "bg-blue-600 hover:bg-blue-700 text-white"
-                  }`}
-                >
-                  {showForm ? "취소" : "지출 추가"}
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => void handleCopyRecurring()}
+                    disabled={copyingRecurring}
+                    aria-label="반복 항목 이번 달에 일괄 추가"
+                    className="px-4 py-2 rounded-xl text-sm font-medium transition-colors bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300 border border-gray-300 dark:border-gray-700 disabled:opacity-50"
+                  >
+                    {copyingRecurring ? "복사 중..." : "🔄 반복 항목 추가"}
+                  </button>
+                  <button
+                    onClick={() => setShowForm(!showForm)}
+                    aria-label={showForm ? "지출 추가 폼 닫기" : "새 지출 추가"}
+                    className={`px-4 py-2 rounded-xl text-sm font-medium transition-colors ${
+                      showForm
+                        ? "bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300"
+                        : "bg-blue-600 hover:bg-blue-700 text-white"
+                    }`}
+                  >
+                    {showForm ? "취소" : "지출 추가"}
+                  </button>
+                </div>
               </div>
 
               {/* 추가 폼 */}
