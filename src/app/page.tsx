@@ -58,6 +58,8 @@ interface DashboardData {
   totalExpense: number;
   totalRefund: number;
   netExpense: number;
+  cardExpense: number;
+  manualExpense: number;
   categoryBreakdown: CategorySummary[];
   prevCategoryBreakdown: CategorySummary[];
   memberBreakdown: MemberSummary[];
@@ -336,6 +338,13 @@ export default function DashboardPage() {
                   </span>
                 )}
               </div>
+              {(data.cardExpense > 0 && data.manualExpense > 0) && (
+                <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
+                  <span>카드 {formatKRW(data.cardExpense)}</span>
+                  <span className="text-gray-700 dark:text-gray-600">·</span>
+                  <span>기타(고정) {formatKRW(data.manualExpense)}</span>
+                </div>
+              )}
               {data.totalRefund < 0 && (
                 <p className="text-xs text-green-400 mt-1">
                   환불 {formatKRW(Math.abs(data.totalRefund))}

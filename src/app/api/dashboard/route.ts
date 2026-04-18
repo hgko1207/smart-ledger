@@ -26,6 +26,8 @@ interface DashboardData {
   totalExpense: number;
   totalRefund: number;
   netExpense: number;
+  cardExpense: number;
+  manualExpense: number;
   categoryBreakdown: CategorySummary[];
   prevCategoryBreakdown: CategorySummary[];
   memberBreakdown: MemberSummary[];
@@ -82,6 +84,26 @@ export async function GET(request: Request) {
     const totalExpense = Number(monthTotals[0]?.totalExpense ?? 0);
     const totalRefund = Number(monthTotals[0]?.totalRefund ?? 0);
     const netExpense = totalExpense + totalRefund; // refund is negative
+
+    // 2-1. 카드 vs 기타 지출 분리
+    const sourceRows = await db
+      .select({
+        isManual: sql<number>`case when ${transactions.cardCompany} = 'manual' then 1 else 0 end`,
+        total: sql<number>`sum(case when ${transactions.amount} > 0 then ${transactions.amount} else 0 end)`,
+      })
+      .from(transactions)
+      .where(and(eq(transactions.year, year), eq(transactions.month, month)))
+      .groupBy(sql`case when ${transactions.cardCompany} = 'manual' then 1 else 0 end`);
+
+    let cardExpense = 0;
+    let manualExpense = 0;
+    for (const row of sourceRows) {
+      if (Number(row.isManual) === 1) {
+        manualExpense = Number(row.total);
+      } else {
+        cardExpense = Number(row.total);
+      }
+    }
 
     // 3. 본인/가족별 합산
     const memberRows = await db
@@ -179,6 +201,8 @@ export async function GET(request: Request) {
       totalExpense,
       totalRefund,
       netExpense,
+      cardExpense,
+      manualExpense,
       categoryBreakdown,
       prevCategoryBreakdown,
       memberBreakdown,
