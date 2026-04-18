@@ -343,44 +343,28 @@ export default function DashboardPage() {
                   환불 {formatKRW(Math.abs(data.totalRefund))}
                 </p>
               )}
-
-              {/* 카드 vs 기타 지출 분리 바 */}
-              {(data.cardExpense > 0 || data.manualExpense > 0) && (
-                <div className="mt-6 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5">
-                  {(data.cardExpense > 0 && data.manualExpense > 0) && (
-                    <div className="w-full h-4 rounded-full overflow-hidden flex mb-4">
-                      <div
-                        className="bg-blue-500 h-full transition-all"
-                        style={{ width: `${(data.cardExpense / data.totalExpense) * 100}%` }}
-                      />
-                      <div
-                        className="bg-purple-500 h-full transition-all"
-                        style={{ width: `${(data.manualExpense / data.totalExpense) * 100}%` }}
-                      />
+              {/* 카드/고정 비율 — 히어로 내 인라인 바 */}
+              {(data.cardExpense > 0 && data.manualExpense > 0) && (() => {
+                const cardPct = Math.round((data.cardExpense / data.totalExpense) * 100);
+                return (
+                  <div className="mt-5">
+                    <div className="w-full h-2 rounded-full overflow-hidden flex bg-gray-200 dark:bg-gray-800">
+                      <div className="bg-blue-500 h-full" style={{ width: `${cardPct}%` }} />
+                      <div className="bg-purple-500 h-full" style={{ width: `${100 - cardPct}%` }} />
                     </div>
-                  )}
-                  <div className="grid grid-cols-2 gap-4">
-                    {data.cardExpense > 0 && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
-                          <span className="text-xs text-gray-400">카드 지출</span>
-                        </div>
-                        <p className="text-lg font-bold text-gray-900 dark:text-white">{formatKRW(data.cardExpense)}</p>
-                      </div>
-                    )}
-                    {data.manualExpense > 0 && (
-                      <div>
-                        <div className="flex items-center gap-2 mb-1">
-                          <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
-                          <span className="text-xs text-gray-400">기타 고정지출</span>
-                        </div>
-                        <p className="text-lg font-bold text-gray-900 dark:text-white">{formatKRW(data.manualExpense)}</p>
-                      </div>
-                    )}
+                    <div className="flex justify-between mt-1.5">
+                      <span className="text-xs text-gray-500">
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 mr-1 align-middle" />
+                        카드 {formatKRW(data.cardExpense)}
+                      </span>
+                      <span className="text-xs text-gray-500">
+                        고정 {formatKRW(data.manualExpense)}
+                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-purple-500 ml-1 align-middle" />
+                      </span>
+                    </div>
                   </div>
-                </div>
-              )}
+                );
+              })()}
             </section>
 
             {/* 2. 요약 카드 그리드 */}
