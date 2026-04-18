@@ -130,7 +130,7 @@ export default function ManualExpensesPage() {
         setSelectedYear(submittedYear);
         setSelectedMonth(submittedMonth);
       } else {
-        void fetchData();
+        await fetchData();
       }
     } catch (err) {
       const message =
@@ -180,7 +180,7 @@ export default function ManualExpensesPage() {
         const errData = (await res.json()) as { error: string };
         throw new Error(errData.error);
       }
-      void fetchData();
+      await fetchData();
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "지출 삭제에 실패했습니다.";
@@ -232,7 +232,7 @@ export default function ManualExpensesPage() {
         setSelectedYear(editedYear);
         setSelectedMonth(editedMonth);
       } else {
-        void fetchData();
+        await fetchData();
       }
     } catch (err) {
       const message =

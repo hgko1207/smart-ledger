@@ -181,21 +181,28 @@ export async function PATCH(request: Request) {
 }
 
 /**
- * DELETE: 특정 거래 삭제
+ * DELETE: 거래 삭제 (단건 id 또는 파일명 기준 일괄)
  */
 export async function DELETE(request: Request) {
   try {
     const url = new URL(request.url);
     const id = url.searchParams.get("id");
+    const file = url.searchParams.get("file");
 
-    if (!id) {
+    if (!id && !file) {
       return NextResponse.json(
-        { error: "삭제할 거래 ID가 필요합니다." },
+        { error: "삭제할 거래 ID 또는 파일명이 필요합니다." },
         { status: 400 }
       );
     }
 
-    await db.delete(transactions).where(eq(transactions.id, id));
+    if (file) {
+      // 파일명 기준 일괄 삭제
+      const deleted = await db.delete(transactions).where(eq(transactions.statementFile, file));
+      return NextResponse.json({ success: true, deleted: "batch", file });
+    }
+
+    await db.delete(transactions).where(eq(transactions.id, id!));
 
     return NextResponse.json({ success: true });
   } catch (err) {
