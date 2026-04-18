@@ -308,8 +308,8 @@ export default function DashboardPage() {
           <>
             {/* 1. 히어로 섹션 - 총 지출 */}
             <section className="mb-10" aria-label="이번 달 총 지출">
-              <p className="text-sm text-gray-400 mb-1">
-                {data.year}년 {data.month}월 지출
+              <p className="text-sm text-gray-400 mb-2">
+                {data.year}년 {data.month}월 총 지출
               </p>
               <p className="text-4xl md:text-5xl font-black text-gray-900 dark:text-white tracking-tight">
                 {formatKRW(data.netExpense)}
@@ -338,17 +338,48 @@ export default function DashboardPage() {
                   </span>
                 )}
               </div>
-              {(data.cardExpense > 0 && data.manualExpense > 0) && (
-                <div className="flex items-center gap-3 mt-2 text-xs text-gray-500">
-                  <span>카드 {formatKRW(data.cardExpense)}</span>
-                  <span className="text-gray-700 dark:text-gray-600">·</span>
-                  <span>기타(고정) {formatKRW(data.manualExpense)}</span>
-                </div>
-              )}
               {data.totalRefund < 0 && (
                 <p className="text-xs text-green-400 mt-1">
                   환불 {formatKRW(Math.abs(data.totalRefund))}
                 </p>
+              )}
+
+              {/* 카드 vs 기타 지출 분리 바 */}
+              {(data.cardExpense > 0 || data.manualExpense > 0) && (
+                <div className="mt-6 bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-5">
+                  {(data.cardExpense > 0 && data.manualExpense > 0) && (
+                    <div className="w-full h-4 rounded-full overflow-hidden flex mb-4">
+                      <div
+                        className="bg-blue-500 h-full transition-all"
+                        style={{ width: `${(data.cardExpense / data.totalExpense) * 100}%` }}
+                      />
+                      <div
+                        className="bg-purple-500 h-full transition-all"
+                        style={{ width: `${(data.manualExpense / data.totalExpense) * 100}%` }}
+                      />
+                    </div>
+                  )}
+                  <div className="grid grid-cols-2 gap-4">
+                    {data.cardExpense > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="w-2.5 h-2.5 rounded-full bg-blue-500" />
+                          <span className="text-xs text-gray-400">카드 지출</span>
+                        </div>
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">{formatKRW(data.cardExpense)}</p>
+                      </div>
+                    )}
+                    {data.manualExpense > 0 && (
+                      <div>
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="w-2.5 h-2.5 rounded-full bg-purple-500" />
+                          <span className="text-xs text-gray-400">기타 고정지출</span>
+                        </div>
+                        <p className="text-lg font-bold text-gray-900 dark:text-white">{formatKRW(data.manualExpense)}</p>
+                      </div>
+                    )}
+                  </div>
+                </div>
               )}
             </section>
 
