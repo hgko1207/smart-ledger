@@ -243,6 +243,8 @@ const navGroups: NavGroup[] = [
     label: "한눈에 보기",
     items: [
       { href: "/", label: "대시보드", icon: <HomeIcon className="w-5 h-5" /> },
+      { href: "/annual-report", label: "연간 리포트", icon: <CalendarIcon className="w-5 h-5" /> },
+      { href: "/analytics", label: "분석", icon: <ChartIcon className="w-5 h-5" /> },
     ],
   },
   {
@@ -257,9 +259,7 @@ const navGroups: NavGroup[] = [
   {
     label: "도구",
     items: [
-      { href: "/analytics", label: "분석", icon: <ChartIcon className="w-5 h-5" /> },
       { href: "/upload", label: "업로드", icon: <UploadIcon className="w-5 h-5" /> },
-      { href: "/annual-report", label: "연간 리포트", icon: <CalendarIcon className="w-5 h-5" /> },
     ],
   },
 ];
