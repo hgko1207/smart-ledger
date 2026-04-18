@@ -310,6 +310,29 @@ export function parseHyundaiExcel(
     });
   }
 
+  // 대표 월 결정: 가장 많은 거래가 속한 월로 통일
+  // (4월 명세서에 할부 이전 회차 등 1~2월 거래가 섞여 있어도 전부 3월로 귀속)
+  if (transactions.length > 0) {
+    const monthCounts = new Map<string, number>();
+    for (const tx of transactions) {
+      const key = `${tx.year}-${tx.month}`;
+      monthCounts.set(key, (monthCounts.get(key) ?? 0) + 1);
+    }
+    let dominantKey = "";
+    let maxCount = 0;
+    for (const [key, count] of monthCounts) {
+      if (count > maxCount) {
+        dominantKey = key;
+        maxCount = count;
+      }
+    }
+    const [domYear, domMonth] = dominantKey.split("-").map(Number);
+    for (const tx of transactions) {
+      tx.month = domMonth;
+      tx.year = domYear;
+    }
+  }
+
   return {
     transactions,
     statementMonth,
