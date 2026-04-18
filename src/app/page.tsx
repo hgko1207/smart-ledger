@@ -225,6 +225,16 @@ export default function DashboardPage() {
     return map;
   }, [data]);
 
+  const availableBudget = useMemo(() => {
+    if (!data) return { available: 0, variableExpense: 0, budgetAfterFixed: 0, burnRate: 0 };
+    const fixedMonthly = fixedCosts?.totalMonthly ?? 0;
+    const available = data.totalIncome - data.totalExpense;
+    const variableExpense = data.totalExpense - fixedMonthly;
+    const budgetAfterFixed = data.totalIncome - fixedMonthly;
+    const burnRate = budgetAfterFixed > 0 ? (variableExpense / budgetAfterFixed) * 100 : 0;
+    return { available, variableExpense, budgetAfterFixed, burnRate };
+  }, [data, fixedCosts]);
+
   if (loading) {
     return <PageSkeleton />;
   }
@@ -341,6 +351,51 @@ export default function DashboardPage() {
                 </p>
               )}
             </section>
+
+            {/* 가용금액 카드 */}
+            {hasIncome && (
+              <section className="mb-10" aria-label="가용금액 현황">
+                <div className="bg-gray-100 dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl p-6">
+                  <div className="flex items-center justify-between mb-3">
+                    <p className="text-sm text-gray-400">이번 달 가용금액</p>
+                    <span className={`text-xs font-medium px-2 py-0.5 rounded-full ${
+                      availableBudget.burnRate > 90
+                        ? "bg-red-500/10 text-red-400"
+                        : availableBudget.burnRate > 70
+                          ? "bg-yellow-500/10 text-yellow-400"
+                          : "bg-blue-500/10 text-blue-400"
+                    }`}>
+                      소진율 {availableBudget.burnRate.toFixed(0)}%
+                    </span>
+                  </div>
+                  <p className={`text-3xl font-black tracking-tight mb-4 ${
+                    availableBudget.burnRate > 90
+                      ? "text-red-500"
+                      : availableBudget.burnRate > 70
+                        ? "text-yellow-500"
+                        : "text-blue-500"
+                  }`}>
+                    {formatKRW(availableBudget.available)}
+                  </p>
+                  {/* 프로그레스 바 */}
+                  <div className="w-full bg-gray-200 dark:bg-gray-800 rounded-full h-3 mb-3">
+                    <div
+                      className={`h-3 rounded-full transition-all ${
+                        availableBudget.burnRate > 90
+                          ? "bg-red-500"
+                          : availableBudget.burnRate > 70
+                            ? "bg-yellow-500"
+                            : "bg-blue-500"
+                      }`}
+                      style={{ width: `${Math.min(availableBudget.burnRate, 100)}%` }}
+                    />
+                  </div>
+                  <p className="text-xs text-gray-500">
+                    고정지출 {formatKRW(fixedCosts?.totalMonthly ?? 0)} 제외 · 변동지출 {formatKRW(availableBudget.variableExpense)} 사용 중
+                  </p>
+                </div>
+              </section>
+            )}
 
             {/* 2. 요약 카드 그리드 */}
             <div

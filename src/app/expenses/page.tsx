@@ -25,6 +25,8 @@ export default function ExpensesPage() {
   const [deletingId, setDeletingId] = useState<string | null>(null);
   const [sortKey, setSortKey] = useState<"amount" | "date" | "category" | "description">("amount");
   const [sortDir, setSortDir] = useState<"asc" | "desc">("desc");
+  const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
+  const [memoText, setMemoText] = useState("");
 
   function handleSort(key: "amount" | "date" | "category" | "description") {
     if (sortKey === key) {
@@ -95,6 +97,35 @@ export default function ExpensesPage() {
       const message =
         err instanceof Error ? err.message : "카테고리 수정에 실패했습니다.";
       alert(message);
+    }
+  }
+
+  function startMemoEdit(tx: Transaction) {
+    setEditingMemoId(tx.id);
+    setMemoText(tx.memo ?? "");
+  }
+
+  async function saveMemo(id: string) {
+    const newMemo = memoText.trim() || null;
+    try {
+      const res = await fetch(`/api/transactions`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, memo: newMemo }),
+      });
+      if (!res.ok) {
+        const errData = (await res.json()) as { error: string };
+        throw new Error(errData.error);
+      }
+      setTransactions((prev) =>
+        prev.map((tx) => (tx.id === id ? { ...tx, memo: newMemo } : tx))
+      );
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "메모 저장에 실패했습니다.";
+      alert(message);
+    } finally {
+      setEditingMemoId(null);
     }
   }
 
@@ -326,8 +357,30 @@ export default function ExpensesPage() {
                         <td className="px-5 py-3.5 text-sm text-gray-400 whitespace-nowrap">
                           {formatDate(tx.date)}
                         </td>
-                        <td className="px-5 py-3.5 text-sm text-gray-700 dark:text-gray-200 max-w-[240px] truncate">
-                          {tx.description}
+                        <td className="px-5 py-3.5 text-sm max-w-[240px]">
+                          <div className="truncate text-gray-700 dark:text-gray-200">{tx.description}</div>
+                          {editingMemoId === tx.id ? (
+                            <input
+                              type="text"
+                              value={memoText}
+                              onChange={(e) => setMemoText(e.target.value)}
+                              onBlur={() => void saveMemo(tx.id)}
+                              onKeyDown={(e) => { if (e.key === "Enter") void saveMemo(tx.id); if (e.key === "Escape") setEditingMemoId(null); }}
+                              maxLength={100}
+                              autoFocus
+                              placeholder="메모 입력..."
+                              aria-label="메모 편집"
+                              className="mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-xs text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            />
+                          ) : (
+                            <button
+                              onClick={() => startMemoEdit(tx)}
+                              aria-label={tx.memo ? `메모 수정: ${tx.memo}` : "메모 추가"}
+                              className="mt-0.5 text-xs text-gray-400 hover:text-blue-400 transition-colors truncate max-w-full text-left"
+                            >
+                              {tx.memo ? `📝 ${tx.memo}` : <span className="opacity-0 group-hover:opacity-50">+ 메모</span>}
+                            </button>
+                          )}
                         </td>
                         <td className={`px-5 py-3.5 text-sm text-right font-mono whitespace-nowrap ${
                           tx.amount < 0 ? "text-green-400" : tx.amount >= 100000 ? "text-gray-900 dark:text-white font-semibold" : "text-gray-700 dark:text-gray-200"
@@ -411,6 +464,28 @@ export default function ExpensesPage() {
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-medium text-gray-700 dark:text-gray-200 truncate">{tx.description}</p>
                       <p className="text-xs text-gray-500 mt-0.5">{formatDate(tx.date)} · {tx.cardName}</p>
+                      {editingMemoId === tx.id ? (
+                        <input
+                          type="text"
+                          value={memoText}
+                          onChange={(e) => setMemoText(e.target.value)}
+                          onBlur={() => void saveMemo(tx.id)}
+                          onKeyDown={(e) => { if (e.key === "Enter") void saveMemo(tx.id); if (e.key === "Escape") setEditingMemoId(null); }}
+                          maxLength={100}
+                          autoFocus
+                          placeholder="메모 입력..."
+                          aria-label="메모 편집"
+                          className="mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-xs text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                        />
+                      ) : tx.memo ? (
+                        <button onClick={() => startMemoEdit(tx)} className="text-xs text-gray-400 mt-0.5 truncate max-w-full text-left" aria-label={`메모 수정: ${tx.memo}`}>
+                          📝 {tx.memo}
+                        </button>
+                      ) : (
+                        <button onClick={() => startMemoEdit(tx)} className="text-xs text-gray-500/50 mt-0.5" aria-label="메모 추가">
+                          + 메모
+                        </button>
+                      )}
                     </div>
                     <p className={`text-sm font-mono font-medium ml-3 whitespace-nowrap ${
                       tx.amount < 0 ? "text-green-400" : "text-gray-900 dark:text-white"

@@ -59,6 +59,8 @@ export default function ManualExpensesPage() {
     isRecurring: boolean;
   }>({ date: "", description: "", amount: "", category: "기타", isRecurring: false });
   const [editSubmitting, setEditSubmitting] = useState(false);
+  const [editingMemoId, setEditingMemoId] = useState<string | null>(null);
+  const [memoText, setMemoText] = useState("");
 
   const monthOptions = getMonthOptions();
 
@@ -136,6 +138,35 @@ export default function ManualExpensesPage() {
       alert(message);
     } finally {
       setSubmitting(false);
+    }
+  }
+
+  function startMemoEdit(tx: Transaction) {
+    setEditingMemoId(tx.id);
+    setMemoText(tx.memo ?? "");
+  }
+
+  async function saveMemo(id: string) {
+    const newMemo = memoText.trim() || null;
+    try {
+      const res = await fetch(`/api/transactions`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ id, memo: newMemo }),
+      });
+      if (!res.ok) {
+        const errData = (await res.json()) as { error: string };
+        throw new Error(errData.error);
+      }
+      setExpenses((prev) =>
+        prev.map((tx) => (tx.id === id ? { ...tx, memo: newMemo } : tx))
+      );
+    } catch (err) {
+      const message =
+        err instanceof Error ? err.message : "메모 저장에 실패했습니다.";
+      alert(message);
+    } finally {
+      setEditingMemoId(null);
     }
   }
 
@@ -508,7 +539,32 @@ export default function ManualExpensesPage() {
                             onClick={() => startEdit(tx)}
                           >
                             <td className="px-4 py-3 text-sm text-gray-700 dark:text-gray-300">{formatDate(tx.date)}</td>
-                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">{tx.description}</td>
+                            <td className="px-4 py-3 text-sm text-gray-900 dark:text-white">
+                              <div>{tx.description}</div>
+                              {editingMemoId === tx.id ? (
+                                <input
+                                  type="text"
+                                  value={memoText}
+                                  onChange={(e) => setMemoText(e.target.value)}
+                                  onBlur={() => void saveMemo(tx.id)}
+                                  onKeyDown={(e) => { if (e.key === "Enter") void saveMemo(tx.id); if (e.key === "Escape") setEditingMemoId(null); }}
+                                  onClick={(e) => e.stopPropagation()}
+                                  maxLength={100}
+                                  autoFocus
+                                  placeholder="메모 입력..."
+                                  aria-label="메모 편집"
+                                  className="mt-1 w-full bg-white dark:bg-gray-800 border border-gray-300 dark:border-gray-700 rounded px-2 py-1 text-xs text-gray-600 dark:text-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                />
+                              ) : tx.memo ? (
+                                <button onClick={(e) => { e.stopPropagation(); startMemoEdit(tx); }} className="text-xs text-gray-400 mt-0.5 truncate max-w-full text-left" aria-label={`메모 수정: ${tx.memo}`}>
+                                  📝 {tx.memo}
+                                </button>
+                              ) : (
+                                <button onClick={(e) => { e.stopPropagation(); startMemoEdit(tx); }} className="text-xs text-gray-500/50 mt-0.5 opacity-0 group-hover:opacity-100" aria-label="메모 추가">
+                                  + 메모
+                                </button>
+                              )}
+                            </td>
                             <td className="px-4 py-3 text-sm text-right font-mono text-red-400 font-medium">
                               {formatKRW(tx.amount)}
                             </td>

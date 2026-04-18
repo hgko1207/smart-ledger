@@ -116,6 +116,138 @@
 
 ---
 
+## 다음 작업 (구현 예정)
+
+### 기능 A: 가용금액 표시 (대시보드)
+
+**목적:** 이번 달 남은 가용금액을 한눈에 파악하여 지출 통제력 향상
+
+**구현 체크리스트:**
+
+- [x] **A-1. 대시보드 페이지에 가용금액 카드 추가**
+  - 파일: `src/app/page.tsx`
+  - 계산식: `가용금액 = totalIncome - fixedCosts.totalMonthly - (totalExpense - fixedCosts.totalMonthly)`
+    - 즉, `가용금액 = totalIncome - totalExpense` (고정비는 이미 totalExpense에 포함)
+    - 변동지출 = `totalExpense - fixedCosts.totalMonthly`
+    - 소진율 = `변동지출 / (totalIncome - fixedCosts.totalMonthly) * 100`
+  - 이미 `data.totalIncome`, `data.totalExpense`, `fixedCosts.totalMonthly` 모두 fetch하고 있으므로 프론트 조합만
+  - 카드 위치: 히어로 섹션 아래, 기존 카드들 위 (수입/저축률 카드 근처)
+  - UI 요소:
+    - "이번 달 가용금액" 라벨 + `formatKRW(available)` 금액 표시
+    - 프로그레스 바: 소진율 시각화 (파랑 < 70%, 노랑 70-90%, 빨강 > 90%)
+    - 하단 텍스트: "고정지출 {formatKRW} 제외, 변동지출 {formatKRW} 사용 중"
+  - `formatKRW` import from `@/lib/format`
+  - aria-label="가용금액 현황" 필수
+
+- [x] **A-2. 타입 정의 추가**
+  - 파일: `src/app/page.tsx` (기존 인터페이스 영역)
+  - 기존 `DashboardData`, `FixedCostsData` 인터페이스 활용 — 새 타입 불필요
+  - `useMemo`로 가용금액/소진율 계산값 메모이제이션
+
+---
+
+### 기능 B: 지출 메모
+
+**목적:** 각 거래에 한줄 메모를 남겨 지출 맥락(선물, 경조사 등)을 기록
+
+**구현 체크리스트:**
+
+- [ ] **B-1. DB 스키마에 memo 컬럼 추가**
+  - 파일: `src/db/schema.ts`
+  - `transactions` 테이블에 `memo: text("memo")` 추가 (nullable)
+  - `Transaction`, `NewTransaction` 타입은 `$inferSelect`/`$inferInsert`로 자동 반영
+  - 마이그레이션: `npx drizzle-kit push`
+
+- [ ] **B-2. transactions PATCH API에 memo 필드 추가**
+  - 파일: `src/app/api/transactions/route.ts`
+  - 현재 PATCH는 `{ id, category }` 만 처리
+  - body 타입을 `{ id: string; category?: string; memo?: string }` 로 확장
+  - category 수정과 memo 수정을 독립적으로 처리 (둘 다 올 수도, 하나만 올 수도)
+  - `.set()` 호출 시 undefined가 아닌 필드만 포함
+
+- [ ] **B-3. transactions GET API에 memo 포함 확인**
+  - 파일: `src/app/api/transactions/route.ts`
+  - 현재 `select()` 호출이 전체 컬럼 반환하는지 확인 → memo 컬럼 자동 포함될 것
+  - 응답 타입에 memo 포함 확인
+
+- [ ] **B-4. 지출 내역 페이지에 메모 UI 추가**
+  - 파일: `src/app/expenses/page.tsx`
+  - 각 거래 행에 메모 아이콘 버튼 (메모 있으면 채워진 아이콘, 없으면 빈 아이콘)
+  - 클릭 시 인라인 텍스트 입력 펼침 (input type="text", maxLength=100)
+  - Enter 또는 blur 시 PATCH 호출로 저장
+  - 모바일 카드뷰에서도 메모 표시/편집 가능
+  - aria-label="메모 편집" 필수
+
+- [ ] **B-5. 기타 지출 페이지에도 메모 UI 적용**
+  - 파일: `src/app/manual-expenses/page.tsx`
+  - expenses 페이지와 동일한 인라인 메모 패턴 적용
+  - 기존 인라인 편집 UI 패턴 참고 (이미 수입 편집 구현됨)
+
+- [ ] **B-6. 타입체크 통과 확인**
+  - `npx tsc --noEmit` 실행
+  - memo가 nullable이므로 `string | null` 처리 주의
+
+---
+
+### 기능 C: 연간 리포트 페이지
+
+**목적:** 12개월 전체 지출/수입/저축 흐름을 한 페이지에서 조망
+
+**구현 체크리스트:**
+
+- [x] **C-1. 연간 리포트 API 생성**
+  - 파일: `src/app/api/annual-report/route.ts` (신규)
+  - GET `?year=2026`
+  - 응답 구조:
+    ```
+    {
+      year: number,
+      monthlyData: { month: number, expense: number, income: number, savings: number }[],
+      categoryTotals: { category: string, total: number }[],
+      totalExpense: number,
+      totalIncome: number,
+      totalSavings: number,
+      avgMonthlyExpense: number,
+      topMonth: { month: number, expense: number },
+      bottomMonth: { month: number, expense: number }
+    }
+    ```
+  - 쿼리: transactions/incomes/savings 테이블에서 해당 year 전체 집계
+  - `cache: "no-store"` 헤더
+  - 기존 analytics/route.ts의 getPreviousMonths 패턴 참고
+
+- [x] **C-2. 연간 리포트 페이지 생성**
+  - 파일: `src/app/annual-report/page.tsx` (신규)
+  - `"use client"` (차트 + 인터랙션)
+  - 연도 셀렉터 (기본값: 현재 연도)
+  - 섹션 1: 연간 요약 카드 — 총수입, 총지출, 총저축, 월평균 지출
+  - 섹션 2: 월별 지출 추이 BarChart (Recharts, 12개월)
+    - `CHART_COLORS`, `TOOLTIP_STYLE` import from `@/lib/theme/colors`
+    - `formatKRW` import from `@/lib/format`
+  - 섹션 3: 카테고리별 연간 합계 PieChart (도넛)
+    - 기존 대시보드 도넛 차트 패턴 재사용
+  - 섹션 4: 수입 vs 지출 월별 비교 (BarChart, 2색 스택)
+  - 가장 많이/적게 쓴 달 하이라이트
+  - 로딩: `PageSkeleton` 컴포넌트 사용
+  - 다크/라이트 모드 대응 (`dark:` 프리픽스)
+
+- [x] **C-3. 사이드바에 연간 리포트 메뉴 추가**
+  - 파일: `src/components/layout/Navigation.tsx`
+  - "도구" 그룹에 추가: `{ href: "/annual-report", label: "연간 리포트", icon: <CalendarIcon /> }`
+  - CalendarIcon SVG 컴포넌트 추가 (기존 아이콘 패턴 참고: 24x24, stroke="currentColor", strokeWidth="2")
+  - 모바일 탭바에는 공간 제한으로 미추가 (사이드바에서만 접근)
+
+- [x] **C-4. 타입 정의**
+  - 파일: `src/app/annual-report/page.tsx` 상단에 인터페이스 정의
+  - API 응답 타입과 일치시킬 것
+
+- [x] **C-5. 타입체크 + 접근성**
+  - `npx tsc --noEmit` 통과
+  - 차트에 aria-label 추가
+  - 페이지 제목 `<h1>` 포함
+
+---
+
 ## TODO (미완료)
 
 > 상세: TODOS.md 참조

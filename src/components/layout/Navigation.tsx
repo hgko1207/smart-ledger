@@ -157,6 +157,24 @@ function CashOutIcon({ className }: { className?: string }) {
   );
 }
 
+function CalendarIcon({ className }: { className?: string }) {
+  return (
+    <svg
+      className={className}
+      width="24"
+      height="24"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth={2}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+    >
+      <path d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
+    </svg>
+  );
+}
+
 function SettingsIcon({ className }: { className?: string }) {
   return (
     <svg
@@ -241,6 +259,7 @@ const navGroups: NavGroup[] = [
     items: [
       { href: "/analytics", label: "분석", icon: <ChartIcon className="w-5 h-5" /> },
       { href: "/upload", label: "업로드", icon: <UploadIcon className="w-5 h-5" /> },
+      { href: "/annual-report", label: "연간 리포트", icon: <CalendarIcon className="w-5 h-5" /> },
     ],
   },
 ];

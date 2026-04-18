@@ -138,31 +138,44 @@ export async function GET(request: Request) {
 }
 
 /**
- * PATCH: 거래 카테고리 수정
+ * PATCH: 거래 수정 (카테고리, 메모 독립 처리)
  */
 export async function PATCH(request: Request) {
   try {
-    const body = (await request.json()) as { id: string; category: string };
+    const body = (await request.json()) as { id: string; category?: string; memo?: string | null };
 
-    if (!body.id || !body.category) {
+    if (!body.id) {
       return NextResponse.json(
-        { error: "거래 ID와 카테고리가 필요합니다." },
+        { error: "거래 ID가 필요합니다." },
+        { status: 400 }
+      );
+    }
+
+    const updates: Record<string, string | null> = {};
+    if (body.category !== undefined) {
+      updates.category = body.category;
+      updates.customCategory = body.category;
+    }
+    if (body.memo !== undefined) {
+      updates.memo = body.memo;
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return NextResponse.json(
+        { error: "수정할 필드가 없습니다." },
         { status: 400 }
       );
     }
 
     await db
       .update(transactions)
-      .set({
-        category: body.category,
-        customCategory: body.category,
-      })
+      .set(updates)
       .where(eq(transactions.id, body.id));
 
     return NextResponse.json({ success: true });
   } catch (err) {
     const message =
-      err instanceof Error ? err.message : "카테고리 수정 중 오류가 발생했습니다.";
+      err instanceof Error ? err.message : "거래 수정 중 오류가 발생했습니다.";
     return NextResponse.json({ error: message }, { status: 500 });
   }
 }
