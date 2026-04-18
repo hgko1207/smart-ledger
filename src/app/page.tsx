@@ -343,28 +343,16 @@ export default function DashboardPage() {
                   환불 {formatKRW(Math.abs(data.totalRefund))}
                 </p>
               )}
-              {/* 카드/고정 비율 — 히어로 내 인라인 바 */}
-              {(data.cardExpense > 0 && data.manualExpense > 0) && (() => {
-                const cardPct = Math.round((data.cardExpense / data.totalExpense) * 100);
-                return (
-                  <div className="mt-5">
-                    <div className="w-full h-2 rounded-full overflow-hidden flex bg-gray-200 dark:bg-gray-800">
-                      <div className="bg-blue-500 h-full" style={{ width: `${cardPct}%` }} />
-                      <div className="bg-purple-500 h-full" style={{ width: `${100 - cardPct}%` }} />
-                    </div>
-                    <div className="flex justify-between mt-1.5">
-                      <span className="text-xs text-gray-500">
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-blue-500 mr-1 align-middle" />
-                        카드 {formatKRW(data.cardExpense)}
-                      </span>
-                      <span className="text-xs text-gray-500">
-                        고정 {formatKRW(data.manualExpense)}
-                        <span className="inline-block w-1.5 h-1.5 rounded-full bg-purple-500 ml-1 align-middle" />
-                      </span>
-                    </div>
-                  </div>
-                );
-              })()}
+              {/* 카드/고정 구분 */}
+              {(data.cardExpense > 0 && data.manualExpense > 0) && (
+                <p className="text-sm text-gray-500 mt-4">
+                  <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 mr-1.5 align-middle" />
+                  카드 {formatKRW(data.cardExpense)} <span className="text-gray-600 dark:text-gray-600">({Math.round((data.cardExpense / data.totalExpense) * 100)}%)</span>
+                  <span className="mx-3 text-gray-700 dark:text-gray-600">·</span>
+                  <span className="inline-block w-2 h-2 rounded-full bg-amber-400 mr-1.5 align-middle" />
+                  고정 {formatKRW(data.manualExpense)} <span className="text-gray-600 dark:text-gray-600">({Math.round((data.manualExpense / data.totalExpense) * 100)}%)</span>
+                </p>
+              )}
             </section>
 
             {/* 2. 요약 카드 그리드 */}
