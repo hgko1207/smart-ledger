@@ -156,7 +156,7 @@ export default function IncomePage() {
         setSelectedYear(submittedYear);
         setSelectedMonth(submittedMonth);
       } else {
-        void fetchData();
+        await fetchData();
       }
     } catch (err) {
       const message =
@@ -175,7 +175,7 @@ export default function IncomePage() {
         const errData = (await res.json()) as { error: string };
         throw new Error(errData.error);
       }
-      void fetchData();
+      await fetchData();
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "수입 삭제에 실패했습니다.";
@@ -226,7 +226,7 @@ export default function IncomePage() {
         setSelectedYear(editedYear);
         setSelectedMonth(editedMonth);
       } else {
-        void fetchData();
+        await fetchData();
       }
     } catch (err) {
       const message =
@@ -261,7 +261,7 @@ export default function IncomePage() {
       setSavingsAmount("");
       setSavingsEndDate("");
       setShowSavingsForm(false);
-      void fetchData();
+      await fetchData();
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "적금 추가에 실패했습니다.";
@@ -279,7 +279,7 @@ export default function IncomePage() {
         const errData = (await res.json()) as { error: string };
         throw new Error(errData.error);
       }
-      void fetchData();
+      await fetchData();
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "적금 삭제에 실패했습니다.";
@@ -321,7 +321,7 @@ export default function IncomePage() {
         throw new Error(errData.error);
       }
       setEditingSavingId(null);
-      void fetchData();
+      await fetchData();
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "적금 수정에 실패했습니다.";
