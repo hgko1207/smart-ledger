@@ -73,11 +73,22 @@ const LOAN_INTEREST_MAP: Record<string, ManualCategory> = {
 /** 반복 항목 수정/삭제/분리 범위 */
 type Scope = "this" | "future" | "all";
 
+/** 신규 반복 생성에 필요한 payload */
+interface CreateRecurringPayload {
+  date: string;
+  description: string;
+  amount: number;
+  category: ManualCategory;
+  isRecurring: number;
+  split?: { interestAmount: number };
+}
+
 /** scope 모달이 트리거하는 액션 종류 */
 type PendingAction =
   | { kind: "edit"; id: string }
   | { kind: "delete"; id: string; description: string }
-  | { kind: "split"; id: string; interestAmount: number; description: string };
+  | { kind: "split"; id: string; interestAmount: number; description: string }
+  | { kind: "create"; payload: CreateRecurringPayload };
 
 export default function ManualExpensesPage() {
   const now = new Date();
@@ -176,6 +187,23 @@ export default function ManualExpensesPage() {
         alert("이자 금액은 총 납입액보다 작아야 합니다.");
         return;
       }
+    }
+
+    // 반복 체크 → scope 모달 (일괄 생성: 이 달 / 이 달~12월 / 올해 전체)
+    if (formRecurring) {
+      setScopeChoice("all");
+      setPendingAction({
+        kind: "create",
+        payload: {
+          date: formDate,
+          description: formDesc,
+          amount: totalAmount,
+          category: formCategory,
+          isRecurring: 1,
+          split: wantsSplit ? { interestAmount } : undefined,
+        },
+      });
+      return;
     }
 
     setSubmitting(true);
@@ -377,12 +405,47 @@ export default function ManualExpensesPage() {
     })();
   }
 
+  async function performCreateRecurring(
+    payload: CreateRecurringPayload,
+    scope: Scope
+  ): Promise<{ created: number; skipped: number }> {
+    const res = await fetch("/api/manual-expenses?action=create-recurring", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ ...payload, scope }),
+    });
+    if (!res.ok) {
+      const errData = (await res.json()) as { error: string };
+      throw new Error(errData.error);
+    }
+    const result = (await res.json()) as { created?: number; skipped?: number };
+    // 폼 리셋 + 월 자동 이동 + 재조회
+    setFormDesc("");
+    setFormAmount("");
+    setFormRecurring(false);
+    setFormSplitLoan(false);
+    setFormInterestAmount("");
+    setShowForm(false);
+
+    const d = new Date(payload.date);
+    const targetYear = d.getFullYear();
+    const targetMonth = d.getMonth() + 1;
+    if (targetYear !== selectedYear || targetMonth !== selectedMonth) {
+      setSelectedYear(targetYear);
+      setSelectedMonth(targetMonth);
+    } else {
+      await fetchData();
+    }
+    return { created: result.created ?? 0, skipped: result.skipped ?? 0 };
+  }
+
   async function handleScopeConfirm() {
     if (!pendingAction) return;
     setScopeSubmitting(true);
     try {
       let affected = 0;
       let verb = "";
+      let skipped = 0;
       if (pendingAction.kind === "edit") {
         affected = await performEditSave(scopeChoice);
         verb = "수정";
@@ -396,10 +459,27 @@ export default function ManualExpensesPage() {
           scopeChoice
         );
         verb = "분리";
+      } else if (pendingAction.kind === "create") {
+        const result = await performCreateRecurring(
+          pendingAction.payload,
+          scopeChoice
+        );
+        affected = result.created;
+        skipped = result.skipped;
+        verb = "생성";
       }
       setPendingAction(null);
-      // 결과 피드백 — 예상과 다른 경우 즉시 감지
+      // 결과 피드백
       setTimeout(() => {
+        if (pendingAction.kind === "create") {
+          const skipMsg = skipped > 0 ? ` (기존 ${skipped}건 중복 스킵)` : "";
+          if (affected === 0) {
+            alert(`이미 존재하는 항목이라 새로 생성된 건이 없습니다${skipMsg}.`);
+          } else {
+            alert(`${affected}건이 생성되었습니다${skipMsg}.`);
+          }
+          return;
+        }
         if (affected === 0) {
           alert(`${verb}할 항목을 찾지 못했습니다. 매칭되는 행이 없습니다.`);
         } else if (scopeChoice !== "this" && affected === 1) {
@@ -1060,27 +1140,53 @@ export default function ManualExpensesPage() {
                 ? "반복 지출 수정"
                 : pendingAction.kind === "delete"
                   ? "반복 지출 삭제"
-                  : "반복 지출 원금/이자 분리"}
+                  : pendingAction.kind === "split"
+                    ? "반복 지출 원금/이자 분리"
+                    : "반복 지출 일괄 생성"}
             </h3>
             <p className="text-sm text-gray-500 mb-5">
-              매월 반복 설정된 항목입니다. 어떤 범위에 적용할까요?
+              {pendingAction.kind === "create"
+                ? "매월 반복 체크된 항목입니다. 어느 기간에 생성할까요? (이미 존재하는 월은 자동 스킵)"
+                : "매월 반복 설정된 항목입니다. 어떤 범위에 적용할까요?"}
             </p>
             <div className="space-y-2 mb-6">
               {(["all", "future", "this"] as const).map((s) => {
-                const labels: Record<Scope, { title: string; desc: string }> = {
-                  all: {
-                    title: "모든 달",
-                    desc: "같은 설명·금액의 반복 항목 전부 (1~12월)",
-                  },
-                  future: {
-                    title: "이 달 및 이후",
-                    desc: `${selectedYear}년 ${selectedMonth}월부터 이후 월까지`,
-                  },
-                  this: {
-                    title: "이 달만",
-                    desc: "현재 선택한 한 건만",
-                  },
-                };
+                const createYear = pendingAction.kind === "create"
+                  ? new Date(pendingAction.payload.date).getFullYear()
+                  : selectedYear;
+                const createMonth = pendingAction.kind === "create"
+                  ? new Date(pendingAction.payload.date).getMonth() + 1
+                  : selectedMonth;
+                const labels: Record<Scope, { title: string; desc: string }> =
+                  pendingAction.kind === "create"
+                    ? {
+                        all: {
+                          title: "올해 전체",
+                          desc: `${createYear}년 1월 ~ 12월 전부 자동 생성`,
+                        },
+                        future: {
+                          title: "이 달부터 12월까지",
+                          desc: `${createYear}년 ${createMonth}월 ~ 12월에 자동 생성`,
+                        },
+                        this: {
+                          title: "이 달만",
+                          desc: `${createYear}년 ${createMonth}월에만 1건 저장`,
+                        },
+                      }
+                    : {
+                        all: {
+                          title: "모든 달",
+                          desc: "같은 설명·금액의 반복 항목 전부 (1~12월)",
+                        },
+                        future: {
+                          title: "이 달 및 이후",
+                          desc: `${selectedYear}년 ${selectedMonth}월부터 이후 월까지`,
+                        },
+                        this: {
+                          title: "이 달만",
+                          desc: "현재 선택한 한 건만",
+                        },
+                      };
                 const info = labels[s];
                 const active = scopeChoice === s;
                 return (
@@ -1131,7 +1237,9 @@ export default function ManualExpensesPage() {
                   ? "처리 중..."
                   : pendingAction.kind === "delete"
                     ? "삭제"
-                    : "적용"}
+                    : pendingAction.kind === "create"
+                      ? "생성"
+                      : "적용"}
               </button>
             </div>
           </div>

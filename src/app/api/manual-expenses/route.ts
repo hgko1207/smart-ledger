@@ -171,6 +171,150 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: true, copied });
     }
 
+    // 반복 지출 일괄 생성 액션
+    // scope: this(선택 월 1건) / future(선택 월~12월) / all(해당 연도 1~12월)
+    // split 모드면 각 월에 원금+이자 2건씩 생성
+    // 동일 (year, month, description, amount, category) 이미 있으면 skip
+    if (action === "create-recurring") {
+      const body = (await request.json()) as {
+        date: string;
+        description: string;
+        amount: number;
+        category: ManualCategory;
+        scope: Scope;
+        isRecurring?: number;
+        split?: { interestAmount: number };
+      };
+
+      if (!body.date || !body.description || !body.amount || !body.category) {
+        return NextResponse.json(
+          { error: "date, description, amount, category는 필수입니다." },
+          { status: 400 }
+        );
+      }
+
+      const d = new Date(body.date);
+      if (isNaN(d.getTime())) {
+        return NextResponse.json({ error: "잘못된 날짜 형식입니다." }, { status: 400 });
+      }
+      const year = d.getFullYear();
+      const baseMonth = d.getMonth() + 1;
+      const day = d.getDate();
+
+      let months: number[];
+      if (body.scope === "this") {
+        months = [baseMonth];
+      } else if (body.scope === "future") {
+        months = [];
+        for (let m = baseMonth; m <= 12; m++) months.push(m);
+      } else {
+        months = [];
+        for (let m = 1; m <= 12; m++) months.push(m);
+      }
+
+      // 생성할 엔트리 준비 (split이면 원금+이자 2건, 아니면 1건)
+      const entries: Array<{
+        description: string;
+        amount: number;
+        category: ManualCategory;
+      }> = [];
+      if (body.split) {
+        if (body.split.interestAmount <= 0 || body.split.interestAmount >= body.amount) {
+          return NextResponse.json(
+            { error: "이자 금액이 유효하지 않습니다." },
+            { status: 400 }
+          );
+        }
+        const principalCat = LOAN_PRINCIPAL_MAP[body.category];
+        const interestCat = LOAN_INTEREST_MAP[body.category];
+        if (!principalCat || !interestCat) {
+          return NextResponse.json(
+            { error: "이 카테고리는 원금/이자 분리를 지원하지 않습니다." },
+            { status: 400 }
+          );
+        }
+        const principalAmount = body.amount - body.split.interestAmount;
+        entries.push({
+          description: `${body.description} (원금)`,
+          amount: principalAmount,
+          category: principalCat,
+        });
+        entries.push({
+          description: `${body.description} (이자)`,
+          amount: body.split.interestAmount,
+          category: interestCat,
+        });
+      } else {
+        entries.push({
+          description: body.description,
+          amount: body.amount,
+          category: body.category,
+        });
+      }
+
+      const now = new Date().toISOString();
+      const recurringFlag = body.isRecurring ?? 1;
+      let created = 0;
+      let skipped = 0;
+
+      // 대상 월의 말일 계산 helper — 1/31 기준이면 2월은 28/29로 자동 보정
+      function clampDay(y: number, m: number, preferredDay: number): number {
+        const lastDay = new Date(y, m, 0).getDate();
+        return Math.min(preferredDay, lastDay);
+      }
+
+      for (const m of months) {
+        const actualDay = clampDay(year, m, day);
+        const monthDate = `${year}-${String(m).padStart(2, "0")}-${String(actualDay).padStart(2, "0")}`;
+
+        for (const entry of entries) {
+          const existing = await db
+            .select({ id: transactions.id })
+            .from(transactions)
+            .where(
+              and(
+                eq(transactions.cardCompany, "manual"),
+                eq(transactions.year, year),
+                eq(transactions.month, m),
+                eq(transactions.description, entry.description),
+                eq(transactions.amount, entry.amount),
+                eq(transactions.category, entry.category)
+              )
+            )
+            .limit(1);
+          if (existing.length > 0) {
+            skipped++;
+            continue;
+          }
+
+          await db.insert(transactions).values({
+            id: crypto.randomUUID(),
+            date: monthDate,
+            description: entry.description,
+            amount: entry.amount,
+            category: entry.category,
+            cardCompany: "manual",
+            cardName: "",
+            memberType: "본인",
+            originalCategory: null,
+            customCategory: null,
+            month: m,
+            year,
+            statementFile: null,
+            installmentTotal: null,
+            installmentCurrent: null,
+            installmentRemaining: null,
+            isRecurring: recurringFlag,
+            memo: null,
+            createdAt: now,
+          });
+          created++;
+        }
+      }
+
+      return NextResponse.json({ success: true, created, skipped });
+    }
+
     // 원금/이자 분리 액션
     if (action === "split") {
       const body = (await request.json()) as ManualExpenseSplitInput;
