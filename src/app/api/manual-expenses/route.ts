@@ -1,24 +1,34 @@
 import { NextResponse } from "next/server";
 import { db } from "@/db";
 import { transactions } from "@/db/schema";
-import { and, eq, desc } from "drizzle-orm";
+import { and, eq, desc, sql } from "drizzle-orm";
 
 type ManualCategory =
   | "헌금/기부"
   | "용돈/지원"
   | "계모임/회비"
-  | "대출상환"
-  | "이자"
+  | "주택대출"
+  | "주택대출-원금"
+  | "주택대출-이자"
+  | "차량대출"
+  | "차량대출-원금"
+  | "차량대출-이자"
+  | "가족대출"
+  | "기타대출"
+  | "기타대출-원금"
+  | "기타대출-이자"
   | "현금지출"
   | "계좌이체"
   | "기타";
+
+type Scope = "this" | "future" | "all";
 
 interface ManualExpenseInput {
   date: string;
   description: string;
   amount: number;
   category: ManualCategory;
-  isRecurring: number; // 0 or 1
+  isRecurring: number;
 }
 
 interface ManualExpensePatchInput {
@@ -28,6 +38,30 @@ interface ManualExpensePatchInput {
   amount?: number;
   category?: ManualCategory;
   isRecurring?: number;
+  scope?: Scope;
+}
+
+interface ManualExpenseSplitInput {
+  id: string;
+  interestAmount: number;
+  scope: Scope;
+}
+
+/** legacy 대출 → 원금/이자 카테고리 매핑 */
+const LOAN_PRINCIPAL_MAP: Record<string, ManualCategory> = {
+  "주택대출": "주택대출-원금",
+  "차량대출": "차량대출-원금",
+  "기타대출": "기타대출-원금",
+};
+const LOAN_INTEREST_MAP: Record<string, ManualCategory> = {
+  "주택대출": "주택대출-이자",
+  "차량대출": "차량대출-이자",
+  "기타대출": "기타대출-이자",
+};
+
+/** 문자열에서 " (원금)" / " (이자)" 접미어 제거 */
+function stripSplitSuffix(desc: string): string {
+  return desc.replace(/\s*\((원금|이자)\)\s*$/u, "");
 }
 
 /**
@@ -62,7 +96,7 @@ export async function GET(request: Request) {
 }
 
 /**
- * POST: 새 수동 지출 추가 또는 반복 항목 일괄 복사
+ * POST: 새 수동 지출 추가 또는 반복 항목 일괄 복사, 또는 원금/이자 분리
  */
 export async function POST(request: Request) {
   try {
@@ -77,13 +111,11 @@ export async function POST(request: Request) {
         return NextResponse.json({ error: "year, month 파라미터가 필요합니다." }, { status: 400 });
       }
 
-      // 모든 반복 항목 조회 (월 무관)
       const recurring = await db
         .select()
         .from(transactions)
         .where(and(eq(transactions.cardCompany, "manual"), eq(transactions.isRecurring, 1)));
 
-      // 이번 달에 이미 있는 반복 항목 확인 (설명+금액 기준)
       const existing = await db
         .select()
         .from(transactions)
@@ -97,7 +129,6 @@ export async function POST(request: Request) {
         existing.map((tx) => `${tx.description}|${tx.amount}`)
       );
 
-      // 반복 항목도 설명+금액 기준으로 중복 제거 (1월, 2월에 같은 항목 → 1건만)
       const seenRecurring = new Set<string>();
       const uniqueRecurring = recurring.filter((tx) => {
         const key = `${tx.description}|${tx.amount}`;
@@ -112,7 +143,7 @@ export async function POST(request: Request) {
 
       for (const tx of uniqueRecurring) {
         const key = `${tx.description}|${tx.amount}`;
-        if (existingKeys.has(key)) continue; // 이미 있으면 스킵
+        if (existingKeys.has(key)) continue;
 
         await db.insert(transactions).values({
           id: crypto.randomUUID(),
@@ -138,6 +169,107 @@ export async function POST(request: Request) {
       }
 
       return NextResponse.json({ success: true, copied });
+    }
+
+    // 원금/이자 분리 액션
+    if (action === "split") {
+      const body = (await request.json()) as ManualExpenseSplitInput;
+      if (!body.id || !body.interestAmount || !body.scope) {
+        return NextResponse.json(
+          { error: "id, interestAmount, scope는 필수입니다." },
+          { status: 400 }
+        );
+      }
+
+      const targetRows = await db
+        .select()
+        .from(transactions)
+        .where(and(eq(transactions.id, body.id), eq(transactions.cardCompany, "manual")))
+        .limit(1);
+      const target = targetRows[0];
+      if (!target) {
+        return NextResponse.json({ error: "대상 지출을 찾을 수 없습니다." }, { status: 404 });
+      }
+
+      const principalCat = LOAN_PRINCIPAL_MAP[target.category];
+      const interestCat = LOAN_INTEREST_MAP[target.category];
+      if (!principalCat || !interestCat) {
+        return NextResponse.json(
+          { error: "이 카테고리는 원금/이자 분리를 지원하지 않습니다." },
+          { status: 400 }
+        );
+      }
+
+      // 대상 행 결정
+      // 매칭 기준: cardCompany='manual' + 동일 description + amount + category
+      // (isRecurring 플래그는 매칭에 사용하지 않음 — 과거 수동 입력건도 포함)
+      let rows;
+      if (body.scope === "this") {
+        rows = [target];
+      } else {
+        const baseRank = target.year * 12 + target.month;
+        const matchConds = [
+          eq(transactions.cardCompany, "manual"),
+          eq(transactions.description, target.description),
+          eq(transactions.amount, target.amount),
+          eq(transactions.category, target.category),
+        ];
+        if (body.scope === "future") {
+          matchConds.push(
+            sql`(${transactions.year} * 12 + ${transactions.month}) >= ${baseRank}`
+          );
+        }
+        rows = await db
+          .select()
+          .from(transactions)
+          .where(and(...matchConds));
+      }
+
+      const now = new Date().toISOString();
+      let processed = 0;
+
+      for (const row of rows) {
+        if (body.interestAmount >= row.amount) continue;
+        const principalAmount = row.amount - body.interestAmount;
+        const baseDesc = stripSplitSuffix(row.description);
+
+        // 원본 → 원금
+        await db
+          .update(transactions)
+          .set({
+            description: `${baseDesc} (원금)`,
+            amount: principalAmount,
+            category: principalCat,
+          })
+          .where(eq(transactions.id, row.id));
+
+        // 이자 새 행
+        await db.insert(transactions).values({
+          id: crypto.randomUUID(),
+          date: row.date,
+          description: `${baseDesc} (이자)`,
+          amount: body.interestAmount,
+          category: interestCat,
+          cardCompany: "manual",
+          cardName: "",
+          memberType: row.memberType,
+          originalCategory: null,
+          customCategory: null,
+          month: row.month,
+          year: row.year,
+          statementFile: null,
+          installmentTotal: null,
+          installmentCurrent: null,
+          installmentRemaining: null,
+          isRecurring: row.isRecurring,
+          memo: null,
+          createdAt: now,
+        });
+
+        processed++;
+      }
+
+      return NextResponse.json({ success: true, processed });
     }
 
     const body = (await request.json()) as ManualExpenseInput;
@@ -183,6 +315,12 @@ export async function POST(request: Request) {
 
 /**
  * PATCH: 수동 지출 편집
+ * scope: "this" | "future" | "all" (반복 항목일 때만 효과)
+ *   - this/미지정: id 단건
+ *   - future: 매칭되는 반복 항목 중 (year,month) >= 대상
+ *   - all: 매칭되는 모든 반복 항목
+ * 매칭 기준: cardCompany='manual', isRecurring=1, 동일 description/amount/category (변경 전 값)
+ * 날짜(date)는 bulk 모드에서 무시 (각 월의 원래 날짜 유지)
  */
 export async function PATCH(request: Request) {
   try {
@@ -195,13 +333,67 @@ export async function PATCH(request: Request) {
       );
     }
 
-    const updates: Record<string, string | number | null> = {};
-    if (body.date !== undefined) {
-      updates.date = body.date;
-      const d = new Date(body.date);
-      updates.month = d.getMonth() + 1;
-      updates.year = d.getFullYear();
+    const scope: Scope = body.scope ?? "this";
+
+    // 단건 모드 (기존 동작)
+    if (scope === "this") {
+      const updates: Record<string, string | number | null> = {};
+      if (body.date !== undefined) {
+        updates.date = body.date;
+        const d = new Date(body.date);
+        updates.month = d.getMonth() + 1;
+        updates.year = d.getFullYear();
+      }
+      if (body.description !== undefined) updates.description = body.description;
+      if (body.amount !== undefined) updates.amount = body.amount;
+      if (body.category !== undefined) updates.category = body.category;
+      if (body.isRecurring !== undefined) updates.isRecurring = body.isRecurring;
+
+      if (Object.keys(updates).length === 0) {
+        return NextResponse.json(
+          { error: "수정할 필드가 없습니다." },
+          { status: 400 }
+        );
+      }
+
+      await db
+        .update(transactions)
+        .set(updates)
+        .where(
+          and(eq(transactions.id, body.id), eq(transactions.cardCompany, "manual"))
+        );
+
+      return NextResponse.json({ success: true, affected: 1 });
     }
+
+    // Bulk 모드 (future/all)
+    // 매칭 기준: cardCompany='manual' + 동일 description + amount + category
+    // (isRecurring 플래그는 매칭에 사용하지 않음)
+    const targetRows = await db
+      .select()
+      .from(transactions)
+      .where(and(eq(transactions.id, body.id), eq(transactions.cardCompany, "manual")))
+      .limit(1);
+    const target = targetRows[0];
+    if (!target) {
+      return NextResponse.json({ error: "대상 지출을 찾을 수 없습니다." }, { status: 404 });
+    }
+
+    const matchConds = [
+      eq(transactions.cardCompany, "manual"),
+      eq(transactions.description, target.description),
+      eq(transactions.amount, target.amount),
+      eq(transactions.category, target.category),
+    ];
+    if (scope === "future") {
+      const baseRank = target.year * 12 + target.month;
+      matchConds.push(
+        sql`(${transactions.year} * 12 + ${transactions.month}) >= ${baseRank}`
+      );
+    }
+
+    // bulk에서는 date 필드 무시
+    const updates: Record<string, string | number | null> = {};
     if (body.description !== undefined) updates.description = body.description;
     if (body.amount !== undefined) updates.amount = body.amount;
     if (body.category !== undefined) updates.category = body.category;
@@ -214,14 +406,13 @@ export async function PATCH(request: Request) {
       );
     }
 
-    await db
+    const result = await db
       .update(transactions)
       .set(updates)
-      .where(
-        and(eq(transactions.id, body.id), eq(transactions.cardCompany, "manual"))
-      );
+      .where(and(...matchConds))
+      .returning({ id: transactions.id });
 
-    return NextResponse.json({ success: true });
+    return NextResponse.json({ success: true, affected: result.length });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "기타 지출 수정 중 오류가 발생했습니다.";
@@ -231,11 +422,13 @@ export async function PATCH(request: Request) {
 
 /**
  * DELETE: 수동 지출 삭제
+ * scope: this(default) | future | all
  */
 export async function DELETE(request: Request) {
   try {
     const url = new URL(request.url);
     const id = url.searchParams.get("id");
+    const scope = (url.searchParams.get("scope") as Scope | null) ?? "this";
 
     if (!id) {
       return NextResponse.json(
@@ -244,13 +437,46 @@ export async function DELETE(request: Request) {
       );
     }
 
-    await db
-      .delete(transactions)
-      .where(
-        and(eq(transactions.id, id), eq(transactions.cardCompany, "manual"))
-      );
+    if (scope === "this") {
+      await db
+        .delete(transactions)
+        .where(
+          and(eq(transactions.id, id), eq(transactions.cardCompany, "manual"))
+        );
+      return NextResponse.json({ success: true, affected: 1 });
+    }
 
-    return NextResponse.json({ success: true });
+    const targetRows = await db
+      .select()
+      .from(transactions)
+      .where(and(eq(transactions.id, id), eq(transactions.cardCompany, "manual")))
+      .limit(1);
+    const target = targetRows[0];
+    if (!target) {
+      return NextResponse.json({ error: "대상 지출을 찾을 수 없습니다." }, { status: 404 });
+    }
+
+    // 매칭 기준: cardCompany='manual' + 동일 description + amount + category
+    // (isRecurring 플래그는 매칭에 사용하지 않음)
+    const matchConds = [
+      eq(transactions.cardCompany, "manual"),
+      eq(transactions.description, target.description),
+      eq(transactions.amount, target.amount),
+      eq(transactions.category, target.category),
+    ];
+    if (scope === "future") {
+      const baseRank = target.year * 12 + target.month;
+      matchConds.push(
+        sql`(${transactions.year} * 12 + ${transactions.month}) >= ${baseRank}`
+      );
+    }
+
+    const result = await db
+      .delete(transactions)
+      .where(and(...matchConds))
+      .returning({ id: transactions.id });
+
+    return NextResponse.json({ success: true, affected: result.length });
   } catch (err) {
     const message =
       err instanceof Error ? err.message : "기타 지출 삭제 중 오류가 발생했습니다.";

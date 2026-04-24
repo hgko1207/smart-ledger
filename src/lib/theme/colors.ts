@@ -52,13 +52,41 @@ export const MANUAL_CATEGORY_COLORS: Record<string, string> = {
   "용돈/지원": "bg-pink-500/20 text-pink-300",
   "계모임/회비": "bg-indigo-500/20 text-indigo-300",
   "주택대출": "bg-red-500/20 text-red-300",
+  "주택대출-원금": "bg-blue-500/20 text-blue-300",
+  "주택대출-이자": "bg-red-500/20 text-red-300",
   "차량대출": "bg-orange-500/20 text-orange-300",
+  "차량대출-원금": "bg-teal-500/20 text-teal-300",
+  "차량대출-이자": "bg-orange-500/20 text-orange-300",
   "가족대출": "bg-rose-500/20 text-rose-300",
   "기타대출": "bg-amber-500/20 text-amber-300",
+  "기타대출-원금": "bg-sky-500/20 text-sky-300",
+  "기타대출-이자": "bg-amber-500/20 text-amber-300",
   "현금지출": "bg-green-500/20 text-green-300",
   "계좌이체": "bg-cyan-500/20 text-cyan-300",
   "기타": "bg-gray-500/20 text-gray-300",
 };
+
+/** 대출 원금 카테고리 목록 (자산 이동 성격 — 실지출 아님) */
+export const LOAN_PRINCIPAL_CATEGORIES = [
+  "주택대출-원금",
+  "차량대출-원금",
+  "기타대출-원금",
+] as const;
+
+/** 대출 이자 카테고리 목록 (실지출) */
+export const LOAN_INTEREST_CATEGORIES = [
+  "주택대출-이자",
+  "차량대출-이자",
+  "기타대출-이자",
+] as const;
+
+/** 대출 합산 카테고리 (원금/이자 분리 안 한 legacy 항목) */
+export const LOAN_LEGACY_CATEGORIES = [
+  "주택대출",
+  "차량대출",
+  "가족대출",
+  "기타대출",
+] as const;
 
 export const TOOLTIP_STYLE = {
   backgroundColor: "#111827",

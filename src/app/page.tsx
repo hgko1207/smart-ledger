@@ -60,6 +60,7 @@ interface DashboardData {
   netExpense: number;
   cardExpense: number;
   manualExpense: number;
+  loanPrincipal: number;
   categoryBreakdown: CategorySummary[];
   prevCategoryBreakdown: CategorySummary[];
   memberBreakdown: MemberSummary[];
@@ -343,9 +344,39 @@ export default function DashboardPage() {
                   환불 {formatKRW(Math.abs(data.totalRefund))}
                 </p>
               )}
+              {/* 수입 · 순수 (수입이 있을 때만) */}
+              {hasIncome && (
+                <p className="text-sm text-gray-500 mt-4">
+                  <span className="inline-block w-2 h-2 rounded-full bg-green-400 mr-1.5 align-middle" />
+                  수입 <span className="text-green-400 font-medium">{formatKRW(data.totalIncome)}</span>
+                  <span className="mx-3 text-gray-700 dark:text-gray-600">·</span>
+                  <span className="inline-block w-2 h-2 rounded-full bg-blue-400 mr-1.5 align-middle" />
+                  순수{" "}
+                  <span
+                    className={`font-medium ${
+                      data.totalIncome - data.netExpense >= 0
+                        ? "text-blue-400"
+                        : "text-red-400"
+                    }`}
+                  >
+                    {data.totalIncome - data.netExpense >= 0 ? "+" : ""}
+                    {formatKRW(data.totalIncome - data.netExpense)}
+                  </span>
+                </p>
+              )}
+              {/* 대출 원금 상환 (자산 이동 성격) */}
+              {data.loanPrincipal > 0 && (
+                <p className="text-xs text-gray-500 mt-2">
+                  <span className="inline-block w-2 h-2 rounded-full bg-indigo-400 mr-1.5 align-middle" />
+                  이 중 대출 원금 <span className="text-indigo-400 font-medium">{formatKRW(data.loanPrincipal)}</span>
+                  <span className="text-gray-600 dark:text-gray-600"> (자산 이동)</span>
+                  <span className="mx-2 text-gray-700 dark:text-gray-600">·</span>
+                  실질 지출 <span className="text-gray-900 dark:text-white font-medium">{formatKRW(data.netExpense - data.loanPrincipal)}</span>
+                </p>
+              )}
               {/* 카드/고정 구분 */}
               {(data.cardExpense > 0 && data.manualExpense > 0) && (
-                <p className="text-sm text-gray-500 mt-4">
+                <p className="text-sm text-gray-500 mt-2">
                   <span className="inline-block w-2 h-2 rounded-full bg-cyan-400 mr-1.5 align-middle" />
                   카드 {formatKRW(data.cardExpense)} <span className="text-gray-600 dark:text-gray-600">({Math.round((data.cardExpense / data.totalExpense) * 100)}%)</span>
                   <span className="mx-3 text-gray-700 dark:text-gray-600">·</span>

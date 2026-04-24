@@ -28,6 +28,7 @@ interface DashboardData {
   netExpense: number;
   cardExpense: number;
   manualExpense: number;
+  loanPrincipal: number; // 대출 원금 상환액 (자산 이동 — 실지출 아님)
   categoryBreakdown: CategorySummary[];
   prevCategoryBreakdown: CategorySummary[];
   memberBreakdown: MemberSummary[];
@@ -104,6 +105,21 @@ export async function GET(request: Request) {
         cardExpense = Number(row.total);
       }
     }
+
+    // 2-2. 대출 원금 상환액 (자산 이동 성격 — 실지출에서 제외 가능)
+    const principalRows = await db
+      .select({
+        total: sql<number>`sum(case when ${transactions.amount} > 0 then ${transactions.amount} else 0 end)`,
+      })
+      .from(transactions)
+      .where(
+        and(
+          eq(transactions.year, year),
+          eq(transactions.month, month),
+          sql`${transactions.category} like '%-원금'`
+        )
+      );
+    const loanPrincipal = Number(principalRows[0]?.total ?? 0);
 
     // 3. 본인/가족별 합산
     const memberRows = await db
@@ -203,6 +219,7 @@ export async function GET(request: Request) {
       netExpense,
       cardExpense,
       manualExpense,
+      loanPrincipal,
       categoryBreakdown,
       prevCategoryBreakdown,
       memberBreakdown,
