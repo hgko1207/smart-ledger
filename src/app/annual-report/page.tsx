@@ -39,6 +39,10 @@ interface AnnualReportData {
   monthlyData: MonthlyDataRow[];
   categoryTotals: CategoryTotalRow[];
   totalExpense: number;
+  totalExpenseRaw: number;
+  excludedExpense: number;
+  monthsWithCardData: number[];
+  excludedMonths: number[];
   totalIncome: number;
   totalSavings: number;
   avgMonthlyExpense: number;
@@ -135,6 +139,28 @@ export default function AnnualReportPage() {
           ))}
         </select>
       </div>
+
+      {/* 카드 미업로드 월 안내 — 합계가 부풀려지는 걸 방지 */}
+      {data.excludedMonths.length > 0 && data.excludedExpense > 0 && (
+        <div className="mb-6 bg-blue-500/5 border border-blue-500/20 rounded-2xl p-4 flex items-start gap-3">
+          <span className="text-blue-400 text-lg leading-none mt-0.5">ℹ</span>
+          <div className="flex-1 text-sm">
+            <p className="text-gray-900 dark:text-white font-medium">
+              카드 명세서가 있는 {data.monthsWithCardData.length}개월(
+              {data.monthsWithCardData.map((m) => `${m}월`).join(", ")}) 기준 합계입니다.
+            </p>
+            <p className="text-xs text-gray-500 mt-1">
+              카드 미업로드 월(
+              {data.excludedMonths.map((m) => `${m}월`).join(", ")})의 기타 지출{" "}
+              <span className="text-blue-400 font-medium">
+                {formatKRW(data.excludedExpense)}
+              </span>
+              은 합계에서 제외됩니다 (참고용 전체 합계:{" "}
+              {formatKRW(data.totalExpenseRaw)}).
+            </p>
+          </div>
+        </div>
+      )}
 
       {/* 요약 카드 4개 */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-8">
