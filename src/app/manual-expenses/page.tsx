@@ -128,6 +128,8 @@ export default function ManualExpensesPage() {
   const [pendingAction, setPendingAction] = useState<PendingAction | null>(null);
   const [scopeChoice, setScopeChoice] = useState<Scope>("all");
   const [scopeSubmitting, setScopeSubmitting] = useState(false);
+  // 신규 생성 시 미래 월 제외 (기본 ON — 실제 입력하지 않은 월에 가짜 지출이 생기지 않도록)
+  const [excludeFuture, setExcludeFuture] = useState(true);
 
   // 기존 legacy 대출 행 분리 인라인 상태
   const [splittingId, setSplittingId] = useState<string | null>(null);
@@ -405,14 +407,52 @@ export default function ManualExpensesPage() {
     })();
   }
 
+  /** scope + excludeFuture를 명시적 months[] 배열로 변환 */
+  function computeRecurringMonths(
+    payload: CreateRecurringPayload,
+    scope: Scope,
+    exclude: boolean
+  ): number[] {
+    const d = new Date(payload.date);
+    const targetYear = d.getFullYear();
+    const baseMonth = d.getMonth() + 1;
+
+    let months: number[];
+    if (scope === "this") months = [baseMonth];
+    else if (scope === "future") {
+      months = [];
+      for (let m = baseMonth; m <= 12; m++) months.push(m);
+    } else {
+      months = [];
+      for (let m = 1; m <= 12; m++) months.push(m);
+    }
+
+    if (exclude) {
+      const today = new Date();
+      const todayYear = today.getFullYear();
+      const todayMonth = today.getMonth() + 1;
+      if (targetYear > todayYear) return [];
+      if (targetYear === todayYear) {
+        months = months.filter((m) => m <= todayMonth);
+      }
+      // targetYear < todayYear: 모두 과거이므로 그대로
+    }
+
+    return months;
+  }
+
   async function performCreateRecurring(
     payload: CreateRecurringPayload,
     scope: Scope
-  ): Promise<{ created: number; skipped: number }> {
+  ): Promise<{ created: number; skipped: number; monthsCount: number }> {
+    const months = computeRecurringMonths(payload, scope, excludeFuture);
+    if (months.length === 0) {
+      return { created: 0, skipped: 0, monthsCount: 0 };
+    }
     const res = await fetch("/api/manual-expenses?action=create-recurring", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ ...payload, scope }),
+      body: JSON.stringify({ ...payload, months }),
     });
     if (!res.ok) {
       const errData = (await res.json()) as { error: string };
@@ -436,7 +476,11 @@ export default function ManualExpensesPage() {
     } else {
       await fetchData();
     }
-    return { created: result.created ?? 0, skipped: result.skipped ?? 0 };
+    return {
+      created: result.created ?? 0,
+      skipped: result.skipped ?? 0,
+      monthsCount: months.length,
+    };
   }
 
   async function handleScopeConfirm() {
@@ -467,6 +511,13 @@ export default function ManualExpensesPage() {
         affected = result.created;
         skipped = result.skipped;
         verb = "생성";
+        if (result.monthsCount === 0) {
+          setPendingAction(null);
+          setTimeout(() => {
+            alert("선택 기간에 생성할 월이 없습니다. (미래 월 제외 옵션을 확인해보세요.)");
+          }, 80);
+          return;
+        }
       }
       setPendingAction(null);
       // 결과 피드백
@@ -1149,7 +1200,7 @@ export default function ManualExpensesPage() {
                 ? "매월 반복 체크된 항목입니다. 어느 기간에 생성할까요? (이미 존재하는 월은 자동 스킵)"
                 : "매월 반복 설정된 항목입니다. 어떤 범위에 적용할까요?"}
             </p>
-            <div className="space-y-2 mb-6">
+            <div className="space-y-2 mb-4">
               {(["all", "future", "this"] as const).map((s) => {
                 const createYear = pendingAction.kind === "create"
                   ? new Date(pendingAction.payload.date).getFullYear()
@@ -1157,16 +1208,36 @@ export default function ManualExpensesPage() {
                 const createMonth = pendingAction.kind === "create"
                   ? new Date(pendingAction.payload.date).getMonth() + 1
                   : selectedMonth;
+                // create 모드의 종료 월: excludeFuture 켜져있고 올해이면 오늘 월, 아니면 12월
+                const today = new Date();
+                const todayYear = today.getFullYear();
+                const todayMonth = today.getMonth() + 1;
+                const endMonth =
+                  pendingAction.kind === "create" && excludeFuture && createYear === todayYear
+                    ? Math.min(12, todayMonth)
+                    : 12;
+                const willBeEmpty =
+                  pendingAction.kind === "create" &&
+                  excludeFuture &&
+                  ((createYear > todayYear) ||
+                    (createYear === todayYear && s === "future" && createMonth > todayMonth));
                 const labels: Record<Scope, { title: string; desc: string }> =
                   pendingAction.kind === "create"
                     ? {
                         all: {
                           title: "올해 전체",
-                          desc: `${createYear}년 1월 ~ 12월 전부 자동 생성`,
+                          desc: `${createYear}년 1월 ~ ${endMonth}월에 자동 생성${
+                            excludeFuture && endMonth < 12 ? " (미래 제외)" : ""
+                          }`,
                         },
                         future: {
-                          title: "이 달부터 12월까지",
-                          desc: `${createYear}년 ${createMonth}월 ~ 12월에 자동 생성`,
+                          title: "이 달부터",
+                          desc:
+                            willBeEmpty
+                              ? "⚠ 시작월이 오늘 이후라 생성될 월이 없습니다"
+                              : `${createYear}년 ${createMonth}월 ~ ${endMonth}월에 자동 생성${
+                                  excludeFuture && endMonth < 12 ? " (미래 제외)" : ""
+                                }`,
                         },
                         this: {
                           title: "이 달만",
@@ -1216,6 +1287,29 @@ export default function ManualExpensesPage() {
                 );
               })}
             </div>
+
+            {/* create 모드일 때만 미래 월 제외 토글 노출 */}
+            {pendingAction.kind === "create" && (
+              <label className="flex items-start gap-2 cursor-pointer mb-5 px-1">
+                <input
+                  type="checkbox"
+                  checked={excludeFuture}
+                  onChange={(e) => setExcludeFuture(e.target.checked)}
+                  aria-label="미래 월 제외"
+                  className="mt-0.5 w-4 h-4 rounded border-gray-300 dark:border-gray-700 text-blue-600 focus:ring-blue-500"
+                />
+                <div>
+                  <span className="text-sm font-medium text-gray-900 dark:text-white">
+                    미래 월은 제외 (오늘 이후 안 만듦)
+                  </span>
+                  <p className="text-xs text-gray-500 mt-0.5">
+                    실제로 결제하지 않은 미래 월에 가짜 지출이 생기는 걸 방지합니다. 예산
+                    관리용으로 12월까지 미리 등록하려면 체크 해제.
+                  </p>
+                </div>
+              </label>
+            )}
+
             <div className="flex justify-end gap-2">
               <button
                 onClick={handleScopeCancel}

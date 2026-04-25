@@ -172,16 +172,18 @@ export async function POST(request: Request) {
     }
 
     // 반복 지출 일괄 생성 액션
-    // scope: this(선택 월 1건) / future(선택 월~12월) / all(해당 연도 1~12월)
-    // split 모드면 각 월에 원금+이자 2건씩 생성
-    // 동일 (year, month, description, amount, category) 이미 있으면 skip
+    // 클라이언트가 명시적으로 months 배열을 보내면 그것만 처리.
+    // legacy: scope=this/future/all (해당 연도 기준)도 호환.
+    // split 모드면 각 월에 원금+이자 2건씩 생성.
+    // 동일 (year, month, description, amount, category) 이미 있으면 skip.
     if (action === "create-recurring") {
       const body = (await request.json()) as {
         date: string;
         description: string;
         amount: number;
         category: ManualCategory;
-        scope: Scope;
+        months?: number[];
+        scope?: Scope;
         isRecurring?: number;
         split?: { interestAmount: number };
       };
@@ -202,7 +204,17 @@ export async function POST(request: Request) {
       const day = d.getDate();
 
       let months: number[];
-      if (body.scope === "this") {
+      if (Array.isArray(body.months) && body.months.length > 0) {
+        const seen = new Set<number>();
+        months = body.months
+          .filter((m) => Number.isInteger(m) && m >= 1 && m <= 12)
+          .filter((m) => {
+            if (seen.has(m)) return false;
+            seen.add(m);
+            return true;
+          })
+          .sort((a, b) => a - b);
+      } else if (body.scope === "this") {
         months = [baseMonth];
       } else if (body.scope === "future") {
         months = [];
@@ -210,6 +222,10 @@ export async function POST(request: Request) {
       } else {
         months = [];
         for (let m = 1; m <= 12; m++) months.push(m);
+      }
+
+      if (months.length === 0) {
+        return NextResponse.json({ success: true, created: 0, skipped: 0 });
       }
 
       // 생성할 엔트리 준비 (split이면 원금+이자 2건, 아니면 1건)
